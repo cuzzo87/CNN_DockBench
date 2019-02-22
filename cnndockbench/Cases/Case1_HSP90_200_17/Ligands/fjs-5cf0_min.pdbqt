@@ -1,0 +1,70 @@
+REMARK  8 active torsions:
+REMARK  status: ('A' for Active; 'I' for Inactive)
+REMARK    1  A    between atoms: C_3  and  C_5 
+REMARK       I    between atoms: C_6  and  N_15 
+REMARK    2  A    between atoms: C_6  and  C_26 
+REMARK    3  A    between atoms: C_10  and  N_15 
+REMARK    4  A    between atoms: C_11  and  C_14 
+REMARK    5  A    between atoms: C_12  and  C_13 
+REMARK    6  A    between atoms: C_17  and  O_24 
+REMARK    7  A    between atoms: C_20  and  O_23 
+REMARK    8  A    between atoms: C_21  and  O_22 
+ROOT
+ATOM      1  N   LIG d   1       0.250 -10.298 -20.857  0.00  0.00    -0.075 NA
+ATOM      2  O   LIG d   1      -0.070  -9.302 -19.940  0.00  0.00    -0.338 OA
+ATOM      3  C   LIG d   1      -0.882  -8.374 -20.526  0.00  0.00     0.232 A 
+ATOM      4  C   LIG d   1      -1.139  -8.762 -21.821  0.00  0.00     0.072 A 
+ATOM      5  C   LIG d   1      -0.473 -10.017 -21.950  0.00  0.00     0.127 A 
+ENDROOT
+BRANCH   5   6
+ATOM      6  C   LIG d   1      -0.587 -10.923 -23.084  0.00  0.00     0.046 A 
+ATOM      7  C   LIG d   1      -1.873 -11.154 -23.591  0.00  0.00     0.026 A 
+ATOM      8  C   LIG d   1      -2.099 -11.897 -24.753  0.00  0.00     0.026 A 
+ATOM      9  C   LIG d   1      -0.989 -12.439 -25.402  0.00  0.00     0.128 A 
+ATOM     10  C   LIG d   1       0.304 -12.262 -24.892  0.00  0.00     0.092 A 
+ATOM     11  C   LIG d   1       0.501 -11.501 -23.733  0.00  0.00     0.130 A 
+BRANCH   8  12
+ATOM     12  C   LIG d   1      -3.506 -12.062 -25.153  0.00  0.00     0.011 A 
+ATOM     13  C   LIG d   1      -4.178 -11.008 -25.780  0.00  0.00     0.120 A 
+ATOM     14  N   LIG d   1      -5.493 -10.999 -26.082  0.00  0.00    -0.262 NA
+ATOM     15  C   LIG d   1      -6.200 -12.094 -25.717  0.00  0.00     0.119 A 
+ATOM     16  C   LIG d   1      -5.657 -13.201 -25.049  0.00  0.00     0.001 A 
+ATOM     17  C   LIG d   1      -4.284 -13.177 -24.750  0.00  0.00    -0.007 A 
+ATOM     18  C   LIG d   1      -6.451 -14.300 -24.657  0.00  0.00     0.010 A 
+ATOM     19  C   LIG d   1      -3.747 -14.265 -24.021  0.00  0.00     0.009 A 
+ATOM     20  C   LIG d   1      -4.536 -15.352 -23.636  0.00  0.00     0.001 A 
+ATOM     21  C   LIG d   1      -5.884 -15.370 -23.965  0.00  0.00     0.001 A 
+ENDBRANCH   8  12
+BRANCH   9  22
+ATOM     22  O   LIG d   1      -1.181 -13.168 -26.549  0.00  0.00    -0.506 OA
+ATOM     23  H   LIG d   1      -0.316 -13.454 -26.891  0.00  0.00     0.292 HD
+ENDBRANCH   9  22
+BRANCH  11  24
+ATOM     24  O   LIG d   1       1.784 -11.331 -23.299  0.00  0.00    -0.506 OA
+ATOM     25  H   LIG d   1       1.757 -10.875 -22.434  0.00  0.00     0.292 HD
+ENDBRANCH  11  24
+ENDBRANCH   5   6
+BRANCH   4  26
+ATOM     26  C   LIG d   1      -2.015  -8.119 -22.787  0.00  0.00    -0.011 A 
+ATOM     27  C   LIG d   1      -1.527  -7.897 -24.079  0.00  0.00     0.012 A 
+ATOM     28  C   LIG d   1      -2.344  -7.345 -25.060  0.00  0.00     0.046 A 
+ATOM     29  C   LIG d   1      -3.663  -7.006 -24.769  0.00  0.00     0.120 A 
+ATOM     30  C   LIG d   1      -4.162  -7.239 -23.483  0.00  0.00     0.046 A 
+ATOM     31  C   LIG d   1      -3.348  -7.809 -22.497  0.00  0.00     0.012 A 
+BRANCH  29  32
+ATOM     32  O   LIG d   1      -4.534  -6.442 -25.662  0.00  0.00    -0.495 OA
+ATOM     33  C   LIG d   1      -4.099  -6.440 -27.020  0.00  0.00     0.277 C 
+ENDBRANCH  29  32
+ENDBRANCH   4  26
+BRANCH   3  34
+ATOM     34  N   LIG d   1      -1.286  -7.318 -19.745  0.00  0.00    -0.254 N 
+ATOM     35  C   LIG d   1      -1.507  -6.092 -20.323  0.00  0.00     0.223 C 
+ATOM     36  O   LIG d   1      -1.146  -5.750 -21.439  0.00  0.00    -0.275 OA
+ATOM     37  H   LIG d   1      -1.289  -7.431 -18.744  0.00  0.00     0.158 HD
+BRANCH  35  38
+ATOM     38  C   LIG d   1      -2.265  -5.123 -19.476  0.00  0.00     0.075 A 
+ATOM     39  C   LIG d   1      -3.599  -4.630 -20.007  0.00  0.00     0.013 A 
+ATOM     40  C   LIG d   1      -2.420  -3.701 -19.978  0.00  0.00     0.013 A 
+ENDBRANCH  35  38
+ENDBRANCH   3  34
+TORSDOF 8
