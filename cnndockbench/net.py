@@ -1,13 +1,12 @@
+import numpy as np
+
 import torch
 import torch.nn as nn
-import numpy as np
 
 
 class ConvProt(nn.Module):
-
     def __init__(self):
         super(ConvProt, self).__init__()
-
         self.layer1 = nn.Sequential(nn.Conv3d(7, 16, kernel_size=3, stride=1),
                                     nn.BatchNorm3d(16),
                                     nn.ReLU(),

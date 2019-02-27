@@ -1,47 +1,45 @@
+import os
+from glob import glob
+
+import numpy as np
+import tqdm
+
 from cnndockbench import home
 from cnndockbench.utils import getCenters
-from glob import glob
-import os
-import tqdm
 from htmdmol.molecule import Molecule
-import numpy as np
 
-_protocols = {'autodock-ga':0,
-             'autodock-lga':1,
-             'autodock-ls':2,
-             'glide-sp':3,
-             'gold-asp':4,
-             'gold-chemscore':5,
-             'gold-goldscore':6,
-             'gold-plp':7,
-             'moe-AffinitydG':8,
-             'moe-GBVIWSA':9,
-             'moe-LondondG':10,
-             'plants-chemplp':11,
-             'plants-plp':12,
-             'plants-plp95':13,
-             'rdock-solv':14,
-             'rdock-std':15,
-             'vina-std':16}
+PROTOCOLS = {'autodock-ga': 0,
+             'autodock-lga': 1,
+             'autodock-ls': 2,
+             'glide-sp': 3,
+             'gold-asp': 4,
+             'gold-chemscore': 5,
+             'gold-goldscore': 6,
+             'gold-plp': 7,
+             'moe-AffinitydG': 8,
+             'moe-GBVIWSA': 9,
+             'moe-LondondG': 10,
+             'plants-chemplp': 11,
+             'plants-plp': 12,
+             'plants-plp95': 13,
+             'rdock-solv': 14,
+             'rdock-std': 15,
+             'vina-std': 16}
+
 
 def loadDatasets():
-
     dataFolder = home('Cases')
-
     datasets = glob(dataFolder + '/*')
-
     sdatasets = {}
     for d in datasets:
         basename = os.path.basename(d)
         _id, _system, _nproteins, _nprotocols = basename.split('_')
-
         l, p, r, d, = loadDataSet(d, int(_nprotocols))
         sdatasets[_id] = [_system, _nproteins, _nprotocols, l, p, r, d]
     return sdatasets
 
 
 def loadDataSet(dataset, nprotocols):
-
     listFiles = glob(dataset + '/*')
 
     ligands = getLigands(listFiles[0])
@@ -49,9 +47,11 @@ def loadDataSet(dataset, nprotocols):
     receptors = getProteins(listFiles[2])
     data = getData(listFiles[3], nprotocols)
 
-    ligandsSorted, centers, receptorsSorted, dataSorted = sortDataset(ligands, pdbs, receptors, data)
+    ligandsSorted, centers, receptorsSorted, dataSorted = sortDataset(
+        ligands, pdbs, receptors, data)
 
     return ligandsSorted, centers, receptorsSorted, dataSorted
+
 
 def sortDataset(ligs, pdbs, recs, data):
     sligs = []
@@ -62,18 +62,17 @@ def sortDataset(ligs, pdbs, recs, data):
     for complex, value in data.items():
         l, p = complex.split('-')
 
-        ligFile = [_ for _ in ligs if l in  _][0]
+        ligFile = [_ for _ in ligs if l in _][0]
         protFile = [_ for _ in recs if p in _][0]
-        pdbFile = [ _ for _ in pdbs if p in _][0]
+        pdbFile = [_ for _ in pdbs if p in _][0]
 
         sligs.append(ligFile)
         spbds.append(pdbFile)
         srecs.append(protFile)
         sdata.append(value)
-    lignames = [ os.path.basename(l).split('-')[0].upper() for l in sligs]
-    centers = [   getCenters(p, l) for p, l in zip(spbds, lignames)]
+    lignames = [os.path.basename(l).split('-')[0].upper() for l in sligs]
+    centers = [getCenters(p, l) for p, l in zip(spbds, lignames)]
     return sligs, centers, srecs, np.array(sdata)
-
 
 
 def getData(dataFile, nprotocols):
@@ -97,11 +96,14 @@ def getData(dataFile, nprotocols):
                 complexes[curr_complex] = np.zeros((3, nprotocols))
 
         if line.startswith('RMSDmin'):
-            complexes[curr_complex][0][_protocols[curr_protocol]] = float(line.strip().split()[-1])
+            complexes[curr_complex][0][PROTOCOLS[curr_protocol]
+                                       ] = float(line.strip().split()[-1])
         if line.startswith('RMSDave'):
-            complexes[curr_complex][1][_protocols[curr_protocol]] = float(line.strip().split()[-1])
+            complexes[curr_complex][1][PROTOCOLS[curr_protocol]
+                                       ] = float(line.strip().split()[-1])
         if line.startswith('N(RMSD<R)'):
-            complexes[curr_complex][2][_protocols[curr_protocol]] = float(line.strip().split()[-1])
+            complexes[curr_complex][2][PROTOCOLS[curr_protocol]
+                                       ] = float(line.strip().split()[-1])
 
     return complexes
 
@@ -114,6 +116,7 @@ def getLigands(folderpath):
 def getProteins(folderpath):
     p_files = glob(folderpath + '/*.mol2')
     return p_files
+
 
 def getComplexes(folderpath):
     p_files = glob(folderpath + '/*.pdb')
