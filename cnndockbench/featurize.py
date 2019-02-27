@@ -1,5 +1,6 @@
 import numpy as np
 from rdkit import Chem
+from rdkit import DataStructs
 from rdkit.Chem import AllChem
 
 from htmdmol.molecule import Molecule
@@ -24,7 +25,6 @@ def getLigandFeatures(molfile):
         return ligmol
     fp = AllChem.GetMorganFingerprintAsBitVect(
         ligmol, 2, nBits=1024, useChirality=True)
-    bitstring = fp.ToBitString()
-    intmap = map(int, bitstring)
-
-    return np.array(list(intmap))
+    arr = np.zeros((1,), dtype=np.float32)
+    DataStructs.ConvertToNumpyArray(fp, arr)
+    return arr
