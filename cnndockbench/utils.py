@@ -4,13 +4,5 @@ import torch
 from htmdmol.molecule import Molecule
 
 
-def getCenters(prot, ligname):
-    m = Molecule(prot)
-    center = np.mean(m.coords[m.resname == ligname.upper()], axis=0)
-    return center.reshape(3).tolist()
-
-
-def getTensor(narray, atype, device):
-    narray = narray.astype(atype)
-    t = torch.from_numpy(narray)
-    return t.to(device)
+def geom_center(mol):
+    return np.mean(np.squeeze(mol.coords), axis=0)
