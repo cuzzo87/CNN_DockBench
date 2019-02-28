@@ -20,6 +20,9 @@ N_PROTOCOLS = len(PROTOCOLS)
 
 
 def build_guide(path):
+    """
+    Builds a convenient guide for preprocessing data.
+    """
     cases = glob(os.path.join(path, '*/'))
     pat = re.compile(REGEX_PATTERN)
 
@@ -69,6 +72,9 @@ def build_guide(path):
 
 
 def clean_data(guide, path, outpath):
+    """
+    Creates subfolder structure.
+    """
     for pdbid in tqdm(guide.keys()):
         case = os.path.join(path, guide[pdbid]['case'])
         cocrystal_dir = os.path.join(case, 'cocrystals')
