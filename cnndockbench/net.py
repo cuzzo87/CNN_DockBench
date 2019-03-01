@@ -2,62 +2,49 @@ import numpy as np
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 
-class ConvProt(nn.Module):
-    def __init__(self):
-        super(ConvProt, self).__init__()
-        self.layer1 = nn.Sequential(nn.Conv3d(7, 16, kernel_size=3, stride=1),
-                                    nn.BatchNorm3d(16),
-                                    nn.ReLU(),
-                                    nn.MaxPool3d(kernel_size=2, stride=1))
+class TwoLegs(nn.Module):
+    def __init__(self, channels=8, fp_size=1024):
+        super(TwoLegs, self).__init__()
+        self.channels = channels
+        self.fp_size = fp_size
 
-        self.layer2 = nn.Sequential(nn.Conv3d(16, 32, kernel_size=3, stride=1),
-                                    nn.BatchNorm3d(32),
-                                    nn.ReLU(),
-                                    nn.MaxPool3d(kernel_size=2, stride=1))
+        self.linear_fp1 = nn.Linear(fp_size, 512)
+        self.linear_fp2 = nn.Linear(512, 512)
 
-        self.layer3 = nn.Sequential(nn.Conv3d(32, 32, kernel_size=3, stride=1),
-                                    nn.BatchNorm3d(32),
-                                    nn.ReLU(),
-                                    nn.MaxPool3d(kernel_size=2, stride=1))
-        self.fc = nn.Linear(32 * 3 * 3 * 3, 1024)
+        self.conv_voxel1 = nn.Conv3d(self.channels, 64, kernel_size=3)
+        self.conv_voxel2 = nn.Conv3d(64, 64, kernel_size=3)
+        self.max_voxel1 = nn.MaxPool3d(kernel_size=3)
+        self.conv_voxel3 = nn.Conv3d(64, 64, kernel_size=1)
+        self.conv_voxel4 = nn.Conv3d(64, 64, kernel_size=3)
+        self.conv_voxel5 = nn.Conv3d(64, 64, kernel_size=3)
 
-    def forward(self, x):
-        out = self.layer1(x)
-        out = self.layer2(out)
-        for i in range(5):
-            out = self.layer3(out)
-        out = out.reshape(out.size(0), -1)
-        out = self.fc(out)
-        return out
+        self.linear_cat1 = nn.Linear(1024, 128)
+        self.linear_out1 = nn.Linear(128, 17)
+        self.linear_out2 = nn.Linear(128, 17)
+        self.linear_out3 = nn.Linear(128, 17)
 
+    def _fingerprint_forward(self, fp):
+        x = F.relu(self.linear_fp1(fp))
+        return F.relu(self.linear_fp2(x))
 
-class FullNN(nn.Module):
-    def __init__(self):
-        super(FullNN, self).__init__()
+    def _pocket_forward(self, voxel):
+        x = F.relu(self.conv_voxel1(voxel))
+        x = F.relu(self.conv_voxel2(x))
+        x = self.max_voxel1(x)
+        x = F.relu(self.conv_voxel3(x))
+        x = F.relu(self.conv_voxel4(x))
+        x = F.relu(self.conv_voxel5(x))
+        return x.view(x.shape[0], -1)
 
-        self.fc1 = nn.Linear(1024, 1024)
-        self.fc2 = nn.Linear(1024, 1024)
-        self.fc3 = nn.Linear(1024 + 1024, 1024)
-        self.fc4 = nn.Linear(1024, 512)
-        self.fc5 = nn.Linear(512, 256)
-        self.fc6 = nn.Linear(256, 128)
-
-        self.fcOut1 = nn.Linear(128, 17)
-        self.fcOut2 = nn.Linear(128, 17)
-        self.fcOut3 = nn.Linear(128, 17)
-
-    def forward(self, x, p):
-        out = self.fc1(x)
-        out = self.fc2(out)
-        out = self.fc3(torch.cat((out, p), 1))
-        out = self.fc4(out)
-        out = self.fc5(out)
-        out = self.fc6(out)
-
-        out1 = self.fcOut1(out)
-        out2 = self.fcOut2(out)
-        out3 = self.fcOut3(out)
-
+    def forward(self, fp, voxel):
+        fp_out = self._fingerprint_forward(fp)
+        voxel_out = self._pocket_forward(voxel)
+        x = torch.cat([fp_out, voxel_out], dim=1)
+        x = self.linear_cat1(x)
+        out1 = self.linear_out1(x)
+        out2 = self.linear_out2(x)
+        out3 = self.linear_out3(x)
         return out1, out2, out3
