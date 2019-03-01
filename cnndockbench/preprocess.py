@@ -137,6 +137,7 @@ def clean_data(guide, path, outpath):
     return protein_exclude, ligand_exclude
 
 if __name__ == '__main__':
+    print('Cleaning input data...')
     guide = build_guide(DATA_PATH)
     protein_exclude, ligand_exclude = clean_data(guide, DATA_PATH, OUTDIR)
     if len(protein_exclude) > 0:
