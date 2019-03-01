@@ -39,12 +39,12 @@ class TwoLegs(nn.Module):
         x = F.relu(self.conv_voxel5(x))
         return x.view(x.shape[0], -1)
 
-    def forward(self, fp, voxel):
-        fp_out = self._fingerprint_forward(fp)
+    def forward(self, voxel, fp):
         voxel_out = self._pocket_forward(voxel)
-        x = torch.cat([fp_out, voxel_out], dim=1)
+        fp_out = self._fingerprint_forward(fp)
+        x = torch.cat([voxel_out, fp_out], dim=1)
         x = self.linear_cat1(x)
         out1 = self.linear_out1(x)
         out2 = self.linear_out2(x)
-        out3 = self.linear_out3(x)
+        out3 = self.linear_out3(x).clamp(max=20)
         return out1, out2, out3

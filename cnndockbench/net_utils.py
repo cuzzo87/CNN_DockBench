@@ -1,15 +1,19 @@
 import numpy as np
+import torch
+from torch import nn
 from rdkit import Chem, DataStructs
 from rdkit.Chem import AllChem, SDMolSupplier
+from torch.utils.data import Dataset
 
-import torch
 from htmdmol.molecule import Molecule
 from htmdmol.tools.voxeldescriptors import getVoxelDescriptors
-from torch.utils.data import Dataset
 
 
 class Featurizer(Dataset):
     def __init__(self, coords, grid_centers, channels, centers, ligands, rmsd_min, rmsd_ave, n_rmsd):
+        """
+        Produces voxels for protein pocket and fingerprint for ligand.
+        """
         self.coords = coords
         self.grid_centers = grid_centers
         self.channels = channels
@@ -24,7 +28,7 @@ class Featurizer(Dataset):
         ligand = next(SDMolSupplier(self.ligands[index]))
         rmsd_min = np.load(self.rmsd_min[index]).astype(np.float32)
         rmsd_ave = np.load(self.rmsd_ave[index]).astype(np.float32)
-        n_rmsd = np.load(self.n_rmsd[index]).astype(np.uint8)
+        n_rmsd = np.load(self.n_rmsd[index]).astype(np.float32)
         prot_feat, _ = get_protein_features(usercoords=np.load(self.coords[index]),
                                             usercenters=np.load(self.grid_centers[index]),
                                             userchannels=np.load(self.channels[index]),
@@ -38,6 +42,23 @@ class Featurizer(Dataset):
 
     def __len__(self):
         return len(self.coords)
+
+
+class CombinedLoss(nn.Module):
+    """
+    MSELoss for rmsd_min / rmsd_ave and PoissonNLLLoss for n_rmsd
+    """
+    def __init__(self):
+        super(CombinedLoss, self).__init__()
+        self.loss_rmsd_min = nn.MSELoss()
+        self.loss_rmsd_ave = nn.MSELoss()
+        self.loss_n_rmsd = nn.PoissonNLLLoss(log_input=True, full=True)
+
+    def forward(self, out1, out2, out3, rmsd_min, rmsd_ave, n_rmsd):
+        loss_rmsd_min = self.loss_rmsd_min(out1, rmsd_min)
+        loss_rmsd_ave = self.loss_rmsd_ave(out2, rmsd_ave)
+        loss_n_rmsd = self.loss_n_rmsd(out3, n_rmsd)
+        return loss_rmsd_min, loss_rmsd_ave, loss_n_rmsd
 
 
 def get_protein_features(usercoords, usercenters, userchannels, rotate_over=None, boxsize=[24]*3):
@@ -63,4 +84,3 @@ def get_ligand_features(mol):
     arr = np.zeros((1,), dtype=np.float32)
     DataStructs.ConvertToNumpyArray(fp, arr)
     return arr
-

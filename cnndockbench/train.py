@@ -14,6 +14,7 @@ from cnndockbench.utils import get_data
 GPU_DEVICE = torch.device('cuda')
 NUM_WORKERS = int(multiprocessing.cpu_count() / 2)
 N_EPOCHS = 20
+BATCH_SIZE = 32
 
 
 def training_loop(loader, model, loss_cl, opt):
@@ -59,7 +60,7 @@ def eval_loop(loader, model):
             fp = fp.to(GPU_DEVICE)
 
             out1, out2, out3 = model(voxel, fp)
-            out3 = torch.round(torch.exp(out3)).type(torch.int)
+            out3 = torch.round(torch.exp(out3)).clamp(max=20).type(torch.int)
 
             rmsd_min_all.append(rmsd_min)
             rmsd_ave_all.append(rmsd_ave)
@@ -79,7 +80,10 @@ if __name__ == '__main__':
     feat = Featurizer(coords, grid_centers, channels, centers,
                       ligands, rmsd_min, rmsd_ave, n_rmsd)
 
-    loader_train = DataLoader(feat, batch_size=8, num_workers=NUM_WORKERS, shuffle=True)
+    loader_train = DataLoader(feat,
+                              batch_size=BATCH_SIZE,
+                              num_workers=NUM_WORKERS,
+                              shuffle=True)
     model = TwoLegs().cuda()
     loss_cl = CombinedLoss()
     opt = Adam(model.parameters())
@@ -90,5 +94,8 @@ if __name__ == '__main__':
         training_loop(loader_train, model, loss_cl, opt)
 
     print('Evaluating model...')
-    loader_test = DataLoader(feat, batch_size=8, num_workers=NUM_WORKERS, shuffle=False)
+    loader_test = DataLoader(feat,
+                             batch_size=BATCH_SIZE,
+                             num_workers=NUM_WORKERS,
+                             shuffle=False)
     rmsd_min_test, rmsd_ave_test, n_rmsd_test, rmsd_min_pred, rmsd_ave_pred, n_rmsd_pred = eval_loop(loader_test, model)
