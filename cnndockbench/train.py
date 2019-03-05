@@ -1,6 +1,7 @@
-import os
 import multiprocessing
+import os
 
+import numpy as np
 import torch
 from torch.optim import Adam
 from torch.utils.data import DataLoader
@@ -9,16 +10,24 @@ from tqdm import tqdm
 from cnndockbench import home
 from cnndockbench.net import TwoLegs
 from cnndockbench.net_utils import CombinedLoss, Featurizer
-from cnndockbench.utils import get_data, Splitter
-
+from cnndockbench.utils import Splitter, get_data
 
 GPU_DEVICE = torch.device('cuda')
 NUM_WORKERS = int(multiprocessing.cpu_count() / 2)
-N_EPOCHS = 20
+
+DATA_PATH = os.path.join(home(), 'data')
+RES_PATH = os.path.join(home(), 'results')
+
+N_EPOCHS = 50
+N_SPLITS = 5
 BATCH_SIZE = 32
 
 
 def training_loop(loader, model, loss_cl, opt):
+    """
+    Training loop of `model` using data from `loader` and
+    loss functions from `loss_cl` using optimizer `opt`.
+    """
     model = model.train()
     progress = tqdm(loader)
 
@@ -45,6 +54,9 @@ def training_loop(loader, model, loss_cl, opt):
 
 
 def eval_loop(loader, model):
+    """
+    Evaluation loop using `model` and data from `loader`.
+    """
     model = model.eval()
     progress = tqdm(loader)
 
@@ -76,33 +88,45 @@ def eval_loop(loader, model):
 
 
 if __name__ == '__main__':
-    path = os.path.join(home(), 'data')
-    data = get_data(path)
+    data = get_data(DATA_PATH)
 
-    sp = Splitter(*data)
-    train_data, test_data = sp.split(p=.25, mode='random')
+    sp = Splitter(*data, n_splits=N_SPLITS, method='random')
+    train_data, test_data = sp.get_split(split_no=0, mode='random')
 
-    feat_train = Featurizer(*train_data)
-    feat_test = Featurizer(*test_data)
+    for mode in ['random', 'ligand_scaffold']:
+        for split_no in range(N_SPLITS):
+            print('Now evaluating split {}/{} with strategy {}'.format(split_no + 1, N_SPLITS, mode))
+            train_data, test_data = sp.get_split(split_no=split_no, mode=mode)
 
-    loader_train = DataLoader(feat_train,
-                              batch_size=BATCH_SIZE,
-                              num_workers=NUM_WORKERS,
-                              shuffle=True)
+            feat_train = Featurizer(*train_data)
+            feat_test = Featurizer(*test_data)
 
-    loader_test = DataLoader(feat_test,
-                             batch_size=BATCH_SIZE,
-                             num_workers=NUM_WORKERS,
-                             shuffle=True)
+            loader_train = DataLoader(feat_train,
+                                      batch_size=BATCH_SIZE,
+                                      num_workers=NUM_WORKERS,
+                                      shuffle=True)
 
-    model = TwoLegs().cuda()
-    loss_cl = CombinedLoss()
-    opt = Adam(model.parameters())
+            loader_test = DataLoader(feat_test,
+                                     batch_size=BATCH_SIZE,
+                                     num_workers=NUM_WORKERS,
+                                     shuffle=True)
 
-    print('Training model...')
-    for i in range(N_EPOCHS):
-        print('Epoch {}/{}...'.format(i + 1, N_EPOCHS))
-        training_loop(loader_train, model, loss_cl, opt)
+            model = TwoLegs().cuda()
+            loss_cl = CombinedLoss()
+            opt = Adam(model.parameters())
 
-    print('Evaluating model...')
-    rmsd_min_test, rmsd_ave_test, n_rmsd_test, rmsd_min_pred, rmsd_ave_pred, n_rmsd_pred = eval_loop(loader_test, model)
+            print('Training model...')
+            for i in range(N_EPOCHS):
+                print('Epoch {}/{}...'.format(i + 1, N_EPOCHS))
+                training_loop(loader_train, model, loss_cl, opt)
+
+            print('Evaluating model...')
+            rmsd_min_test, rmsd_ave_test, n_rmsd_test, rmsd_min_pred, rmsd_ave_pred, n_rmsd_pred = eval_loop(loader_test, model)
+
+            # Save results for later evaluation
+            np.save(os.path.join(RES_PATH, 'rmsd_min_test_{}_{}.npy'.format(mode, split_no)), arr=rmsd_min_test)
+            np.save(os.path.join(RES_PATH, 'rmsd_ave_test_{}_{}.npy'.format(mode, split_no)), arr=rmsd_ave_test)
+            np.save(os.path.join(RES_PATH, 'n_rmsd_test_{}_{}.npy'.format(mode, split_no)), arr=n_rmsd_test)
+            np.save(os.path.join(RES_PATH, 'rmsd_min_pred_{}_{}.npy'.format(mode, split_no)), arr=rmsd_min_pred)
+            np.save(os.path.join(RES_PATH, 'rmsd_ave_pred_{}_{}.npy'.format(mode, split_no)), arr=rmsd_ave_pred)
+            np.save(os.path.join(RES_PATH, 'n_rmsd_pred_{}_{}.npy'.format(mode, split_no)), arr=rmsd_min_pred)
