@@ -9,7 +9,8 @@ from tqdm import tqdm
 from cnndockbench import home
 from cnndockbench.net import TwoLegs
 from cnndockbench.net_utils import CombinedLoss, Featurizer
-from cnndockbench.utils import get_data
+from cnndockbench.utils import get_data, Splitter
+
 
 GPU_DEVICE = torch.device('cuda')
 NUM_WORKERS = int(multiprocessing.cpu_count() / 2)
@@ -31,7 +32,8 @@ def training_loop(loader, model, loss_cl, opt):
         opt.zero_grad()
 
         out1, out2, out3 = model(voxel, fp)
-        loss_rmsd_min, loss_rmsd_ave, loss_n_rmsd = loss_cl(out1, out2, out3, rmsd_min, rmsd_ave, n_rmsd)
+        loss_rmsd_min, loss_rmsd_ave, loss_n_rmsd = loss_cl(
+            out1, out2, out3, rmsd_min, rmsd_ave, n_rmsd)
         loss = loss_rmsd_min + loss_rmsd_ave + loss_n_rmsd
         loss.backward()
         opt.step()
@@ -75,15 +77,24 @@ def eval_loop(loader, model):
 
 if __name__ == '__main__':
     path = os.path.join(home(), 'data')
-    coords, grid_centers, channels, ligands, centers, rmsd_min, rmsd_ave, n_rmsd = get_data(path)
+    data = get_data(path)
 
-    feat = Featurizer(coords, grid_centers, channels, centers,
-                      ligands, rmsd_min, rmsd_ave, n_rmsd)
+    sp = Splitter(*data)
+    train_data, test_data = sp.split(p=.25, mode='random')
 
-    loader_train = DataLoader(feat,
+    feat_train = Featurizer(*train_data)
+    feat_test = Featurizer(*test_data)
+
+    loader_train = DataLoader(feat_train,
                               batch_size=BATCH_SIZE,
                               num_workers=NUM_WORKERS,
                               shuffle=True)
+
+    loader_test = DataLoader(feat_test,
+                             batch_size=BATCH_SIZE,
+                             num_workers=NUM_WORKERS,
+                             shuffle=True)
+
     model = TwoLegs().cuda()
     loss_cl = CombinedLoss()
     opt = Adam(model.parameters())
@@ -94,8 +105,4 @@ if __name__ == '__main__':
         training_loop(loader_train, model, loss_cl, opt)
 
     print('Evaluating model...')
-    loader_test = DataLoader(feat,
-                             batch_size=BATCH_SIZE,
-                             num_workers=NUM_WORKERS,
-                             shuffle=False)
     rmsd_min_test, rmsd_ave_test, n_rmsd_test, rmsd_min_pred, rmsd_ave_pred, n_rmsd_pred = eval_loop(loader_test, model)

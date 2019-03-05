@@ -44,7 +44,7 @@ class TwoLegs(nn.Module):
         fp_out = self._fingerprint_forward(fp)
         x = torch.cat([voxel_out, fp_out], dim=1)
         x = self.linear_cat1(x)
-        out1 = self.linear_out1(x)
-        out2 = self.linear_out2(x)
-        out3 = self.linear_out3(x).clamp(max=20)
+        out1 = F.relu(self.linear_out1(x))
+        out2 = F.relu(self.linear_out2(x))
+        out3 = F.relu(self.linear_out3(x))
         return out1, out2, out3
