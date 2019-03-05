@@ -93,6 +93,10 @@ class Splitter:
         self.splits = list(kf.split(all_indices))
 
     def _ligand_scaffold_split(self):
+        """
+        Ligand-based scaffold split using Morgan fingerprints
+        and k-means clustering.
+        """
         km = MiniBatchKMeans(n_clusters=self.n_splits, random_state=self.random_state)
         feat = np.zeros((self.n_samples, 1024), dtype=np.uint8)
 

@@ -90,10 +90,8 @@ def eval_loop(loader, model):
 if __name__ == '__main__':
     data = get_data(DATA_PATH)
 
-    sp = Splitter(*data, n_splits=N_SPLITS, method='random')
-    train_data, test_data = sp.get_split(split_no=0, mode='random')
-
     for mode in ['random', 'ligand_scaffold']:
+        sp = Splitter(*data, n_splits=N_SPLITS, method='random')
         for split_no in range(N_SPLITS):
             print('Now evaluating split {}/{} with strategy {}'.format(split_no + 1, N_SPLITS, mode))
             train_data, test_data = sp.get_split(split_no=split_no, mode=mode)
