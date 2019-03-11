@@ -74,7 +74,7 @@ class Splitter:
         self.n_samples = len(self.grid_centers)
 
         assert len(self.coords) == len(self.channels) == len(self.ligands) == len(self.centers) == \
-            len(self.rmsd_min) == len(self.rmsd_ave)
+               len(self.rmsd_min) == len(self.rmsd_ave)
 
         if method == 'random':
             self._random_split()
