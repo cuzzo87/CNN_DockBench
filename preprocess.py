@@ -54,19 +54,23 @@ def build_guide(path):
                     n_rmsd = int(lines[i + 4].split(':')
                                  [1].strip('\n').strip('\t'))
 
+                    resolution = float(
+                        lines[i + 5].split(':')[1].split(' ')[0].strip('\t'))
+
                     if pdbid not in guide:
                         guide[pdbid] = {}
 
                     guide[pdbid]['case'] = os.path.basename(
                         os.path.dirname(case))
                     guide[pdbid]['resname'] = resname
+                    guide[pdbid]['resolution'] = resolution
                     guide[pdbid][protocol] = (rmsd_min, rmsd_ave, n_rmsd)
 
     # Iterate over guide to remove missing cases
     to_exclude = []
 
     for pdbid in guide:
-        if len(guide[pdbid]) != N_PROTOCOLS + 2:
+        if len(guide[pdbid]) != N_PROTOCOLS + 3:
             to_exclude.append(pdbid)
 
     for exclude in to_exclude:
@@ -131,15 +135,21 @@ def clean_data(guide, path, outpath):
             rmsd_ave.append(guide[pdbid][protocol][1])
             n_rmsd.append(guide[pdbid][protocol][2])
 
+        resolution = np.array(guide[pdbid]['resolution'])
+
         np.save(os.path.join(outpath, pdbid, 'rmsd_min.npy'), arr=rmsd_min)
         np.save(os.path.join(outpath, pdbid, 'rmsd_ave.npy'), arr=rmsd_ave)
         np.save(os.path.join(outpath, pdbid, 'n_rmsd.npy'), arr=n_rmsd)
+        np.save(os.path.join(outpath, pdbid, 'resolution.npy'), arr=resolution)
     return protein_exclude, ligand_exclude
 
 if __name__ == '__main__':
+    import sys
     print('Cleaning input data...')
+    outdir = sys.argv[1]
+    os.makedirs(outdir, exist_ok=True)
     guide = build_guide(DATA_PATH)
-    protein_exclude, ligand_exclude = clean_data(guide, DATA_PATH, OUTDIR)
+    protein_exclude, ligand_exclude = clean_data(guide, DATA_PATH, outdir)
     if len(protein_exclude) > 0:
         print('Several proteins could not be processed: {}'.format(protein_exclude))
 

@@ -12,7 +12,7 @@ from sklearn.cluster import MiniBatchKMeans
 FP_SIZE = 1024
 
 NEEDED_FILES = ['coords.npy', 'grid_centers.npy', 'channels.npy', 'ligand.sdf',
-                'center.npy', 'rmsd_min.npy', 'rmsd_ave.npy', 'n_rmsd.npy']
+                'center.npy', 'rmsd_min.npy', 'rmsd_ave.npy', 'n_rmsd.npy', 'resolution.npy']
 
 
 def geom_center(mol):
@@ -34,6 +34,7 @@ def get_data(path):
     rmsd_min = []
     rmsd_ave = []
     n_rmsd = []
+    resolution = []
 
     for subfolder in glob(os.path.join(path, '*/')):
         all_available = True
@@ -52,11 +53,12 @@ def get_data(path):
             rmsd_min.append(os.path.join(subfolder, 'rmsd_min.npy'))
             rmsd_ave.append(os.path.join(subfolder, 'rmsd_ave.npy'))
             n_rmsd.append(os.path.join(subfolder, 'n_rmsd.npy'))
-    return coords, grid_centers, channels, centers, ligands, rmsd_min, rmsd_ave, n_rmsd
+            resolution.append(os.path.join(subfolder, 'resolution.npy'))
+    return coords, grid_centers, channels, centers, ligands, rmsd_min, rmsd_ave, n_rmsd, resolution
 
 
 class Splitter:
-    def __init__(self, coords, grid_centers, channels, centers, ligands, rmsd_min, rmsd_ave, n_rmsd,
+    def __init__(self, coords, grid_centers, channels, centers, ligands, rmsd_min, rmsd_ave, n_rmsd, resolution,
                  n_splits=5, method='random', random_state=1337):
         """
         Base class for splitting data into train and test sets.
@@ -69,12 +71,13 @@ class Splitter:
         self.rmsd_min = np.array(rmsd_min)
         self.rmsd_ave = np.array(rmsd_ave)
         self.n_rmsd = np.array(n_rmsd)
+        self.resolution = np.array(resolution)
         self.n_splits = n_splits
         self.random_state = random_state
         self.n_samples = len(self.grid_centers)
 
         assert len(self.coords) == len(self.channels) == len(self.ligands) == len(self.centers) == \
-            len(self.rmsd_min) == len(self.rmsd_ave)
+            len(self.rmsd_min) == len(self.rmsd_ave) == len(self.resolution)
 
         if method == 'random':
             self._random_split()
