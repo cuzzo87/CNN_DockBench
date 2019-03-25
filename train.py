@@ -112,27 +112,27 @@ if __name__ == '__main__':
                                      num_workers=NUM_WORKERS,
                                      shuffle=True)
 
-            # model = TwoLegs().cuda()
-            # loss_cl = CombinedLoss()
-            # opt = Adam(model.parameters())
-            #
-            # print('Training model...')
-            # for i in range(N_EPOCHS):
-            #     print('Epoch {}/{}...'.format(i + 1, N_EPOCHS))
-            #     training_loop(loader_train, model, loss_cl, opt)
-            #
-            # print('Evaluating model...')
-            # rmsd_min_test, rmsd_ave_test, n_rmsd_test, rmsd_min_pred, rmsd_ave_pred, n_rmsd_pred = eval_loop(loader_test, model)
+            model = TwoLegs().cuda()
+            loss_cl = CombinedLoss()
+            opt = Adam(model.parameters())
+
+            print('Training model...')
+            for i in range(N_EPOCHS):
+                print('Epoch {}/{}...'.format(i + 1, N_EPOCHS))
+                training_loop(loader_train, model, loss_cl, opt)
+
+            print('Evaluating model...')
+            rmsd_min_test, rmsd_ave_test, n_rmsd_test, rmsd_min_pred, rmsd_ave_pred, n_rmsd_pred = eval_loop(loader_test, model)
             _, test_idx = sp.splits[split_no]
             test_resolution = np.array([np.load(f) for f in sp.resolution[test_idx]])
 
             os.makedirs(resdir, exist_ok=True)
 
             # Save results for later evaluation
-            # np.save(os.path.join(resdir, 'rmsd_min_test_{}_{}.npy'.format(mode, split_no)), arr=rmsd_min_test)
-            # np.save(os.path.join(resdir, 'rmsd_ave_test_{}_{}.npy'.format(mode, split_no)), arr=rmsd_ave_test)
-            # np.save(os.path.join(resdir, 'n_rmsd_test_{}_{}.npy'.format(mode, split_no)), arr=n_rmsd_test)
-            # np.save(os.path.join(resdir, 'rmsd_min_pred_{}_{}.npy'.format(mode, split_no)), arr=rmsd_min_pred)
-            # np.save(os.path.join(resdir, 'rmsd_ave_pred_{}_{}.npy'.format(mode, split_no)), arr=rmsd_ave_pred)
-            # np.save(os.path.join(resdir, 'n_rmsd_pred_{}_{}.npy'.format(mode, split_no)), arr=rmsd_min_pred)
+            np.save(os.path.join(resdir, 'rmsd_min_test_{}_{}.npy'.format(mode, split_no)), arr=rmsd_min_test)
+            np.save(os.path.join(resdir, 'rmsd_ave_test_{}_{}.npy'.format(mode, split_no)), arr=rmsd_ave_test)
+            np.save(os.path.join(resdir, 'n_rmsd_test_{}_{}.npy'.format(mode, split_no)), arr=n_rmsd_test)
+            np.save(os.path.join(resdir, 'rmsd_min_pred_{}_{}.npy'.format(mode, split_no)), arr=rmsd_min_pred)
+            np.save(os.path.join(resdir, 'rmsd_ave_pred_{}_{}.npy'.format(mode, split_no)), arr=rmsd_ave_pred)
+            np.save(os.path.join(resdir, 'n_rmsd_pred_{}_{}.npy'.format(mode, split_no)), arr=rmsd_min_pred)
             np.save(os.path.join(resdir, 'resolution_{}_{}.npy'.format(mode, split_no)), arr=test_resolution)
