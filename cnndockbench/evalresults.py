@@ -44,7 +44,7 @@ for m in modes:
         idx_points3_pred = np.where( (rmsd_ave_pred == np.min(rmsd_ave_pred, axis=1).reshape(n_complex,1)) & (n_rmsd_pred == np.max(n_rmsd_pred, axis=1).reshape(n_complex,1))) 
         points_pred[idx_points3_pred] += 1
         
-        match = np.equal( np.array(points_test), np.array(points_pred) ).astype(int)
+        match = np.equal(np.array(points_test), np.array(points_pred) ).astype(int)
         
         n_data = match.shape[0] * match.shape[1]
         total = np.sum(match)
