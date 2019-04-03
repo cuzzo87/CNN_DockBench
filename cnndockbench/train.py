@@ -1,5 +1,7 @@
 import multiprocessing
 import os
+import sys
+
 
 import numpy as np
 import torch
@@ -88,11 +90,9 @@ def eval_loop(loader, model):
 
 
 if __name__ == '__main__':
-    import sys
     datadir = sys.argv[1]
     resdir = sys.argv[2]
     data = get_data(datadir)
-    print("Stsrting preparing the splitter . . .")
     for mode in ['random', 'ligand_scaffold']:
         sp = Splitter(*data, n_splits=N_SPLITS, method=mode)
         for split_no in range(N_SPLITS):
