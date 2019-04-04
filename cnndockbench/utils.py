@@ -79,7 +79,6 @@ class Splitter:
         assert len(self.coords) == len(self.channels) == len(self.ligands) == len(self.centers) == \
             len(self.rmsd_min) == len(self.rmsd_ave) == len(self.resolution)
 
-
         if method == 'random':
             self._random_split()
 

@@ -144,12 +144,10 @@ def clean_data(guide, path, outpath):
     return protein_exclude, ligand_exclude
 
 if __name__ == '__main__':
-    import sys
     print('Cleaning input data...')
-    outdir = sys.argv[1]
-    os.makedirs(outdir, exist_ok=True)
+    os.makedirs(OUTDIR, exist_ok=True)
     guide = build_guide(DATA_PATH)
-    protein_exclude, ligand_exclude = clean_data(guide, DATA_PATH, outdir)
+    protein_exclude, ligand_exclude = clean_data(guide, DATA_PATH, OUTDIR)
     if len(protein_exclude) > 0:
         print('Several proteins could not be processed: {}'.format(protein_exclude))
 

@@ -1,6 +1,5 @@
 import multiprocessing
 import os
-import sys
 
 
 import numpy as np
@@ -23,6 +22,7 @@ RES_PATH = os.path.join(home(), 'results')
 N_EPOCHS = 50
 N_SPLITS = 5
 BATCH_SIZE = 32
+EVAL_MODES = ['random', 'ligand_scaffold']
 
 
 def training_loop(loader, model, loss_cl, opt):
@@ -90,10 +90,8 @@ def eval_loop(loader, model):
 
 
 if __name__ == '__main__':
-    datadir = sys.argv[1]
-    resdir = sys.argv[2]
-    data = get_data(datadir)
-    for mode in ['random', 'ligand_scaffold']:
+    data = get_data(DATA_PATH)
+    for mode in EVAL_MODES:
         sp = Splitter(*data, n_splits=N_SPLITS, method=mode)
         for split_no in range(N_SPLITS):
             print('Now evaluating split {}/{} with strategy {}'.format(split_no + 1, N_SPLITS, mode))
@@ -126,13 +124,13 @@ if __name__ == '__main__':
             _, test_idx = sp.splits[split_no]
             test_resolution = np.array([np.load(f) for f in sp.resolution[test_idx]])
 
-            os.makedirs(resdir, exist_ok=True)
+            os.makedirs(RES_PATH, exist_ok=True)
 
             # Save results for later evaluation
-            np.save(os.path.join(resdir, 'rmsd_min_test_{}_{}.npy'.format(mode, split_no)), arr=rmsd_min_test)
-            np.save(os.path.join(resdir, 'rmsd_ave_test_{}_{}.npy'.format(mode, split_no)), arr=rmsd_ave_test)
-            np.save(os.path.join(resdir, 'n_rmsd_test_{}_{}.npy'.format(mode, split_no)), arr=n_rmsd_test)
-            np.save(os.path.join(resdir, 'rmsd_min_pred_{}_{}.npy'.format(mode, split_no)), arr=rmsd_min_pred)
-            np.save(os.path.join(resdir, 'rmsd_ave_pred_{}_{}.npy'.format(mode, split_no)), arr=rmsd_ave_pred)
-            np.save(os.path.join(resdir, 'n_rmsd_pred_{}_{}.npy'.format(mode, split_no)), arr=rmsd_min_pred)
-            np.save(os.path.join(resdir, 'resolution_{}_{}.npy'.format(mode, split_no)), arr=test_resolution)
+            np.save(os.path.join(RES_PATH, 'rmsd_min_test_{}_{}.npy'.format(mode, split_no)), arr=rmsd_min_test)
+            np.save(os.path.join(RES_PATH, 'rmsd_ave_test_{}_{}.npy'.format(mode, split_no)), arr=rmsd_ave_test)
+            np.save(os.path.join(RES_PATH, 'n_rmsd_test_{}_{}.npy'.format(mode, split_no)), arr=n_rmsd_test)
+            np.save(os.path.join(RES_PATH, 'rmsd_min_pred_{}_{}.npy'.format(mode, split_no)), arr=rmsd_min_pred)
+            np.save(os.path.join(RES_PATH, 'rmsd_ave_pred_{}_{}.npy'.format(mode, split_no)), arr=rmsd_ave_pred)
+            np.save(os.path.join(RES_PATH, 'n_rmsd_pred_{}_{}.npy'.format(mode, split_no)), arr=rmsd_min_pred)
+            np.save(os.path.join(RES_PATH, 'resolution_{}_{}.npy'.format(mode, split_no)), arr=test_resolution)
