@@ -2,7 +2,6 @@ import inspect
 import os
 
 
-
 def home(data=None):
     import cnndockbench
 
@@ -13,4 +12,3 @@ def home(data=None):
         return homeDir
 
     return os.path.join(homeDir, data)
-
