@@ -8,10 +8,9 @@ from sklearn.metrics import (accuracy_score, f1_score, matthews_corrcoef,
 
 from cnndockbench import home
 from cnndockbench.preprocess import PROTOCOLS
+from cnndockbench.train import EVAL_MODES, N_SPLITS
 
 RES_DIR = os.path.join(home(), 'results')
-EVAL_MODES = ['random', 'ligand_scaffold']
-N_SPLITS = 5
 
 
 def compute_score(rmsd_ave, n_rmsd, resolution, n_complex):
