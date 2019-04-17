@@ -10,9 +10,9 @@ from tqdm import tqdm
 
 from cnndockbench import home
 from cnndockbench.utils import geom_center
-from htmdmol.molecule import Molecule
-from htmdmol.tools.atomtyper import prepareProteinForAtomtyping
-from htmdmol.tools.voxeldescriptors import getCenters, getChannels
+from moleculekit.molecule import Molecule
+from moleculekit.tools.atomtyper import prepareProteinForAtomtyping
+from moleculekit.tools.voxeldescriptors import getCenters, getChannels
 
 DATA_PATH = os.path.join(home(), 'cases')
 OUTDIR = os.path.join(home(), 'data')

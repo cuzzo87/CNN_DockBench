@@ -5,8 +5,10 @@ from rdkit import Chem, DataStructs
 from rdkit.Chem import AllChem, SDMolSupplier
 from torch.utils.data import Dataset
 
-from htmdmol.molecule import Molecule
-from htmdmol.tools.voxeldescriptors import getVoxelDescriptors
+from moleculekit.molecule import Molecule
+from moleculekit.tools.voxeldescriptors import getVoxelDescriptors
+
+FAIL_FLAG = 99.0
 
 
 class Featurizer(Dataset):
@@ -36,9 +38,10 @@ class Featurizer(Dataset):
         prot_feat = np.transpose(prot_feat.reshape((24, 24, 24, 8)),
                                  axes=(3, 0, 1, 2)).astype(np.float32)
         lig_feat = get_ligand_features(ligand)
+        mask = (rmsd_min != FAIL_FLAG).astype(np.uint8)
         return torch.from_numpy(prot_feat), torch.from_numpy(lig_feat),\
                torch.from_numpy(rmsd_min), torch.from_numpy(rmsd_ave),\
-               torch.from_numpy(n_rmsd)
+               torch.from_numpy(n_rmsd), torch.from_numpy(mask)
 
     def __len__(self):
         return len(self.coords)
