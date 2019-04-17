@@ -1,4 +1,5 @@
 import os
+import pickle
 import re
 import shutil
 from glob import glob
@@ -20,6 +21,7 @@ PROTOCOLS = ['autodock-ga', 'autodock-lga', 'autodock-ls', 'glide-sp', 'gold-asp
              'gold-goldscore', 'gold-plp', 'moe-AffinitydG', 'moe-GBVIWSA', 'moe-LondondG',
              'plants-chemplp', 'plants-plp95', 'plants-plp', 'rdock-solv', 'rdock-std', 'vina-std']
 N_PROTOCOLS = len(PROTOCOLS)
+FAIL_FLAG = 99.0
 
 
 def build_guide(path):
@@ -49,10 +51,11 @@ def build_guide(path):
                         lines[i + 2].split(':')[1].strip('\n').strip('\t'))
                     rmsd_ave = float(
                         lines[i + 3].split(':')[1].strip('\n').strip('\t'))
-                    if rmsd_min == 99 or rmsd_ave == 99:
-                        continue
-                    n_rmsd = int(lines[i + 4].split(':')
-                                 [1].strip('\n').strip('\t'))
+                    if rmsd_min == FAIL_FLAG or rmsd_ave == FAIL_FLAG:
+                        n_rmsd = 99
+                    else:
+                        n_rmsd = int(lines[i + 4].split(':')
+                                     [1].strip('\n').strip('\t'))
 
                     resolution = float(
                         lines[i + 5].split(':')[1].split(' ')[0].strip('\t'))
@@ -143,13 +146,21 @@ def clean_data(guide, path, outpath):
         np.save(os.path.join(outpath, pdbid, 'resolution.npy'), arr=resolution)
     return protein_exclude, ligand_exclude
 
+
 if __name__ == '__main__':
     print('Cleaning input data...')
     os.makedirs(OUTDIR, exist_ok=True)
     guide = build_guide(DATA_PATH)
     protein_exclude, ligand_exclude = clean_data(guide, DATA_PATH, OUTDIR)
-    if len(protein_exclude) > 0:
+    if protein_exclude:
         print('Several proteins could not be processed: {}'.format(protein_exclude))
 
-    if len(ligand_exclude) > 0:
+    if ligand_exclude:
         print('Several ligands could not be read by RDkit: {}'.format(ligand_exclude))
+
+    # Save failed cases for future reference
+    with open(os.path.join(OUTDIR, 'protein_exclude.pkl'), 'wb') as handle:
+        pickle.dump(protein_exclude, handle)
+
+    with open(os.path.join(OUTDIR, 'ligand_exclude.pkl'), 'wb') as handle:
+        pickle.dump(ligand_exclude, handle)
