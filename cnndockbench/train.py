@@ -134,6 +134,6 @@ if __name__ == '__main__':
             np.save(os.path.join(RES_PATH, 'n_rmsd_test_{}_{}.npy'.format(mode, split_no)), arr=n_rmsd_test.numpy())
             np.save(os.path.join(RES_PATH, 'rmsd_min_pred_{}_{}.npy'.format(mode, split_no)), arr=rmsd_min_pred.numpy())
             np.save(os.path.join(RES_PATH, 'rmsd_ave_pred_{}_{}.npy'.format(mode, split_no)), arr=rmsd_ave_pred.numpy())
-            np.save(os.path.join(RES_PATH, 'n_rmsd_pred_{}_{}.npy'.format(mode, split_no)), arr=rmsd_min_pred.numpy())
+            np.save(os.path.join(RES_PATH, 'n_rmsd_pred_{}_{}.npy'.format(mode, split_no)), arr=n_rmsd_pred.numpy())
             np.save(os.path.join(RES_PATH, 'mask_{}_{}.npy'.format(mode, split_no)), arr=mask.numpy())
             np.save(os.path.join(RES_PATH, 'resolution_{}_{}.npy'.format(mode, split_no)), arr=test_resolution)

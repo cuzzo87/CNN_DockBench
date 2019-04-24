@@ -49,7 +49,7 @@ if __name__ == '__main__':
             n_rmsd_test = np.load(os.path.join(RES_DIR, 'n_rmsd_test_{}_{}.npy'.format(mode, split)))
 
             rmsd_ave_pred = np.load(os.path.join(RES_DIR, 'rmsd_ave_pred_{}_{}.npy'.format(mode, split)))
-            n_rmsd_pred = np.load(os.path.join(RES_DIR, 'n_rmsd_pred_{}_{}.npy'.format(mode, split)))
+            n_rmsd_pred = np.round(np.load(os.path.join(RES_DIR, 'n_rmsd_pred_{}_{}.npy'.format(mode, split)))).astype(np.int32)
 
             n_complex = rmsd_ave_pred.shape[0]
             n_protocols = rmsd_ave_pred.shape[1]
