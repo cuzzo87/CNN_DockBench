@@ -9,10 +9,10 @@ from rdkit.Chem import AllChem, SDMolSupplier
 from sklearn.model_selection import KFold
 from sklearn.cluster import MiniBatchKMeans
 
-FP_SIZE = 1024
 
-NEEDED_FILES = ['coords.npy', 'grid_centers.npy', 'channels.npy', 'ligand.sdf',
-                'center.npy', 'rmsd_min.npy', 'rmsd_ave.npy', 'n_rmsd.npy', 'resolution.npy']
+FP_SIZE = 1024
+REQUIRED_FILES = ['coords.npy', 'grid_centers.npy', 'channels.npy', 'ligand.sdf',
+                  'center.npy', 'rmsd_min.npy', 'rmsd_ave.npy', 'n_rmsd.npy', 'resolution.npy']
 
 
 def geom_center(mol):
@@ -20,6 +20,19 @@ def geom_center(mol):
     Returns molecule geometric center
     """
     return np.mean(np.squeeze(mol.coords), axis=0)
+
+
+def check_required_files(path, required_files):
+    """
+    Checks the required files are available in the folder
+    before retrieving them.
+    """
+    all_available = True
+    available_files = set([os.path.basename(f) for f in glob(os.path.join(path, '*'))])
+    for req_file in required_files:
+        if req_file not in available_files:
+            all_available = False
+    return all_available
 
 
 def get_data(path):
@@ -37,14 +50,7 @@ def get_data(path):
     resolution = []
 
     for subfolder in glob(os.path.join(path, '*/')):
-        all_available = True
-        available_files = set([os.path.basename(f)
-                               for f in glob(os.path.join(subfolder, '*'))])
-        for need_file in NEEDED_FILES:
-            if need_file not in available_files:
-                all_available = False
-
-        if all_available:
+        if check_required_files(subfolder, REQUIRED_FILES):
             coords.append(os.path.join(subfolder, 'coords.npy'))
             grid_centers.append(os.path.join(subfolder, 'grid_centers.npy'))
             channels.append(os.path.join(subfolder, 'channels.npy'))
