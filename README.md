@@ -8,14 +8,3 @@ Execute to replicate package environment
 conda env create -f conda_env.yml
 ```
 
-### Other dependencies
-
-htmdmol
-
-
-```bash
-git clone https://github.com/compsciencelab/htmdmol.git
-```
-
-Then prepend package to `PYTHONPATH`.
-
