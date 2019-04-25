@@ -33,10 +33,15 @@ def compute_score(rmsd_ave, n_rmsd, resolution, n_complex):
     return score
 
 
-def regression_metrics(rmsd_test, rmsd_pred):
-    n_protocols = len(PROTOCOLS)
-    rmses = [rmse(rmsd_test[:, i], rmsd_pred[:, i]) for i in range(n_protocols)]
-    corrs = [corr(rmsd_test[:, i], rmsd_pred[:, i]) for i in range(n_protocols)]
+def regression_metrics(rmsd_test, rmsd_pred, mask):
+    rmses = []
+    corrs = []
+
+    for idx_protocol in range(len(PROTOCOLS)):
+        r_t, r_p = (rmsd_test[:, idx_protocol])[mask[:, idx_protocol].astype(np.bool)], \
+                   (rmsd_pred[:, idx_protocol])[mask[:, idx_protocol].astype(np.bool)]
+        rmses.append(rmse(r_t, r_p))
+        corrs.append(corr(r_t, r_p))
     return rmses, corrs
 
 
@@ -51,6 +56,7 @@ if __name__ == '__main__':
     for mode in EVAL_MODES:
         for split_no in range(N_SPLITS):
             resolution = np.load(os.path.join(RES_DIR, 'resolution_{}_{}.npy'.format(mode, split_no)))
+            mask = np.load(os.path.join(RES_DIR, 'mask_{}_{}.npy'.format(mode, split_no))).astype(np.bool)
 
             rmsd_ave_test = np.load(os.path.join(RES_DIR, 'rmsd_ave_test_{}_{}.npy'.format(mode, split_no)))
             n_rmsd_test = np.load(os.path.join(RES_DIR, 'n_rmsd_test_{}_{}.npy'.format(mode, split_no)))
@@ -62,10 +68,10 @@ if __name__ == '__main__':
             n_protocols = rmsd_ave_pred.shape[1]
             resolution = np.transpose(np.tile(resolution, (n_protocols, 1)))
 
-            score_test = compute_score(rmsd_ave_test, n_rmsd_test, resolution, n_complex)
-            score_pred = compute_score(rmsd_ave_pred, n_rmsd_pred, resolution, n_complex)
+            #score_test = compute_score(rmsd_ave_test, n_rmsd_test, resolution, n_complex)
+            #score_pred = compute_score(rmsd_ave_pred, n_rmsd_pred, resolution, n_complex)
 
-            rmses_ave, corrs_ave = regression_metrics(rmsd_ave_test, rmsd_ave_pred)
+            rmses_ave, corrs_ave = regression_metrics(rmsd_ave_test, rmsd_ave_pred, mask)
 
             results.setdefault(mode, {})
 
