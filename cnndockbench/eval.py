@@ -13,6 +13,14 @@ from cnndockbench.train import EVAL_MODES, N_SPLITS
 RES_DIR = os.path.join(home(), 'results')
 
 
+def rmse(y, ypred):
+    return np.sqrt(np.mean((y - ypred)**2))
+
+
+def corr(y, ypred):
+    return np.corrcoef((y, ypred))[0, 1]
+
+
 def compute_score(rmsd_ave, n_rmsd, resolution, n_complex):
     """
     Computes target score. @cuzzo check this out please!
@@ -25,31 +33,30 @@ def compute_score(rmsd_ave, n_rmsd, resolution, n_complex):
     return score
 
 
-def metrics(score_test, score_pred, strategy='weighted'):
-    """
-    Computes standard multiclass classification metrics per protocol.
-    """
+def regression_metrics(rmsd_test, rmsd_pred):
     n_protocols = len(PROTOCOLS)
-    accs = [accuracy_score(score_test[:, i], score_pred[:, i]) for i in range(n_protocols)]
-    precs = [precision_score(score_test[:, i], score_pred[:, i], average=strategy) for i in range(n_protocols)]
-    recs = [recall_score(score_test[:, i], score_pred[:, i], average=strategy) for i in range(n_protocols)]
-    f1s = [f1_score(score_test[:, i], score_pred[:, i], average=strategy) for i in range(n_protocols)]
-    mccs = [matthews_corrcoef(score_test[:, i], score_pred[:, i]) for i in range(n_protocols)]
-    return accs, precs, recs, mccs
+    rmses = [rmse(rmsd_test[:, i], rmsd_pred[:, i]) for i in range(n_protocols)]
+    corrs = [corr(rmsd_test[:, i], rmsd_pred[:, i]) for i in range(n_protocols)]
+    return rmses, corrs
+
+
+def ordinal_metrics(score_test, score_pred):
+    #TODO: check https://github.com/ayrna/orca#performance-metrics
+    pass
 
 
 if __name__ == '__main__':
     results = {}
 
     for mode in EVAL_MODES:
-        for split in range(N_SPLITS):
-            resolution = np.load(os.path.join(RES_DIR, 'resolution_{}_{}.npy'.format(mode, split)))
+        for split_no in range(N_SPLITS):
+            resolution = np.load(os.path.join(RES_DIR, 'resolution_{}_{}.npy'.format(mode, split_no)))
 
-            rmsd_ave_test = np.load(os.path.join(RES_DIR, 'rmsd_ave_test_{}_{}.npy'.format(mode, split)))
-            n_rmsd_test = np.load(os.path.join(RES_DIR, 'n_rmsd_test_{}_{}.npy'.format(mode, split)))
+            rmsd_ave_test = np.load(os.path.join(RES_DIR, 'rmsd_ave_test_{}_{}.npy'.format(mode, split_no)))
+            n_rmsd_test = np.load(os.path.join(RES_DIR, 'n_rmsd_test_{}_{}.npy'.format(mode, split_no)))
 
-            rmsd_ave_pred = np.load(os.path.join(RES_DIR, 'rmsd_ave_pred_{}_{}.npy'.format(mode, split)))
-            n_rmsd_pred = np.round(np.load(os.path.join(RES_DIR, 'n_rmsd_pred_{}_{}.npy'.format(mode, split)))).astype(np.int32)
+            rmsd_ave_pred = np.load(os.path.join(RES_DIR, 'rmsd_ave_pred_{}_{}.npy'.format(mode, split_no)))
+            n_rmsd_pred = np.round(np.load(os.path.join(RES_DIR, 'n_rmsd_pred_{}_{}.npy'.format(mode, split_no)))).astype(np.int32)
 
             n_complex = rmsd_ave_pred.shape[0]
             n_protocols = rmsd_ave_pred.shape[1]
@@ -58,16 +65,15 @@ if __name__ == '__main__':
             score_test = compute_score(rmsd_ave_test, n_rmsd_test, resolution, n_complex)
             score_pred = compute_score(rmsd_ave_pred, n_rmsd_pred, resolution, n_complex)
 
-            accs, precs, recs, mccs = metrics(score_test, score_pred)
+            rmses_ave, corrs_ave = regression_metrics(rmsd_ave_test, rmsd_ave_pred)
 
             results.setdefault(mode, {})
 
             for i, protocol in enumerate(PROTOCOLS):
                 results[mode].setdefault(protocol, {})
-                results[mode][protocol].setdefault('acc', []).append(accs[i])
-                results[mode][protocol].setdefault('prec', []).append(precs[i])
-                results[mode][protocol].setdefault('rec', []).append(recs[i])
-                results[mode][protocol].setdefault('mcc', []).append(mccs[i])
+                results[mode][protocol].setdefault('rmse_ave', []).append(rmses_ave[i])
+                results[mode][protocol].setdefault('corr_ave', []).append(corrs_ave[i])
+
 
     with open(os.path.join(RES_DIR, 'results.pkl'), 'wb') as handle:
         pickle.dump(results, handle)
