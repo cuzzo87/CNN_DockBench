@@ -12,7 +12,7 @@ from cnndockbench.net import TwoLegs
 from cnndockbench.net_utils import CombinedLoss, Featurizer
 from cnndockbench.utils import Splitter, get_data
 
-GPU_DEVICE = torch.device('cuda')
+DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 NUM_WORKERS = int(multiprocessing.cpu_count() / 2)
 
 DATA_PATH = os.path.join(home(), 'data')
@@ -33,11 +33,11 @@ def training_loop(loader, model, loss_cl, opt):
     progress = tqdm(loader)
 
     for voxel, fp, rmsd_min, rmsd_ave, n_rmsd, mask in progress:
-        voxel = voxel.to(GPU_DEVICE)
-        fp = fp.to(GPU_DEVICE)
-        rmsd_min = rmsd_min.to(GPU_DEVICE)[mask]
-        rmsd_ave = rmsd_ave.to(GPU_DEVICE)[mask]
-        n_rmsd = n_rmsd.to(GPU_DEVICE)[mask]
+        voxel = voxel.to(DEVICE)
+        fp = fp.to(DEVICE)
+        rmsd_min = rmsd_min.to(DEVICE)[mask]
+        rmsd_ave = rmsd_ave.to(DEVICE)[mask]
+        n_rmsd = n_rmsd.to(DEVICE)[mask]
 
         opt.zero_grad()
 
@@ -72,8 +72,8 @@ def eval_loop(loader, model):
 
     for voxel, fp, rmsd_min, rmsd_ave, n_rmsd, mask in progress:
         with torch.no_grad():
-            voxel = voxel.to(GPU_DEVICE)
-            fp = fp.to(GPU_DEVICE)
+            voxel = voxel.to(DEVICE)
+            fp = fp.to(DEVICE)
 
             out1, out2, out3 = model(voxel, fp)
             out3 = torch.round(torch.exp(out3)).clamp(max=20).type(torch.int)
