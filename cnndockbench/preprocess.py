@@ -70,16 +70,28 @@ def build_guide(path):
                     guide[pdbid]['resolution'] = resolution
                     guide[pdbid][protocol] = (rmsd_min, rmsd_ave, n_rmsd)
 
-    # Iterate over guide to remove missing cases
-    to_exclude = []
-
+    # Iterate over guide to remove incorrectly processed cases
+    not_complete_cases = []
     for pdbid in guide:
         if len(guide[pdbid]) != N_PROTOCOLS + 3:
-            to_exclude.append(pdbid)
+            not_complete_cases.append(pdbid)
 
-    for exclude in to_exclude:
-        guide.pop(exclude, None)
-    return guide
+    for pdbid in not_complete_cases:
+        guide.pop(pdbid, None)
+
+    # Check cases where everything is missing
+    all_missing_cases = []
+    for pdbid in guide:
+        all_missing = True
+        for protocol in PROTOCOLS:
+            if guide[pdbid][protocol] != (FAIL_FLAG, FAIL_FLAG, int(FAIL_FLAG)):
+                all_missing = False
+        if all_missing:
+            all_missing_cases.append(pdbid)
+
+    for pdbid in all_missing_cases:
+        guide.pop(pdbid, None)
+    return guide, not_complete_cases, all_missing_cases
 
 
 def clean_data(guide, path, outpath):
@@ -163,7 +175,11 @@ def clean_data(guide, path, outpath):
 if __name__ == '__main__':
     print('Cleaning input data...')
     os.makedirs(OUTDIR, exist_ok=True)
-    guide = build_guide(DATA_PATH)
+    guide, not_complete_cases, all_missing_cases = build_guide(DATA_PATH)
+    print('After cleaning input files, {} cases were correctly parsed.'.format(len(guide)),
+          '{} contained incomplete docking cases, with ids: {}.'.format(len(not_complete_cases), not_complete_cases),
+          '{} featured all missing cases, with ids: {}.'.format(len(all_missing_cases), all_missing_cases), sep='\n')
+
     protein_exclude, ligand_exclude = clean_data(guide, DATA_PATH, OUTDIR)
     if protein_exclude:
         print('Several proteins were not correctly filtered or could not be featurized: {}'.format(
@@ -176,6 +192,12 @@ if __name__ == '__main__':
         print('Some ids could not be processed for other reasons: {}'.format(SKIP_IDS))
 
     # Save failed cases for future reference
+    with open(os.path.join(OUTDIR, 'not_complete.pkl'), 'wb') as handle:
+        pickle.dump(not_complete_cases, handle)
+
+    with open(os.path.join(OUTDIR, 'all_missing.pkl'), 'wb') as handle:
+        pickle.dump(all_missing_cases, handle)
+
     with open(os.path.join(OUTDIR, 'protein_exclude.pkl'), 'wb') as handle:
         pickle.dump(protein_exclude, handle)
 

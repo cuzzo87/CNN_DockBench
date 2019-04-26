@@ -84,7 +84,7 @@ def regression_metrics(rmsd_test, rmsd_pred, mask):
         elif len(u_t) == 1 or len(u_p) == 1:
             corrs.append(1.0)
             continue
-        else:        
+        else:
             corrs.append(corr(r_t, r_p))
     return rmses, corrs
 
