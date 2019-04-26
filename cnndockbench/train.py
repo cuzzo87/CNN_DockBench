@@ -4,13 +4,14 @@ import os
 import numpy as np
 import torch
 from torch.optim import Adam
+from torch.optim.lr_scheduler import ExponentialLR
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from cnndockbench import home
-from cnndockbench.net import TwoLegs
-from cnndockbench.net_utils import CombinedLoss, Featurizer
-from cnndockbench.utils import Splitter, get_data
+from net import TwoLegs
+from net_utils import CombinedLoss, Featurizer
+from utils import home, Splitter, get_data
+
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 NUM_WORKERS = int(multiprocessing.cpu_count() / 2)
@@ -18,7 +19,7 @@ NUM_WORKERS = int(multiprocessing.cpu_count() / 2)
 DATA_PATH = os.path.join(home(), 'data')
 RES_PATH = os.path.join(home(), 'results')
 
-N_EPOCHS = 50
+N_EPOCHS = 100
 N_SPLITS = 10
 BATCH_SIZE = 32
 EVAL_MODES = ['random', 'ligand_scaffold']
@@ -115,11 +116,13 @@ if __name__ == '__main__':
             model = TwoLegs().cuda()
             loss_cl = CombinedLoss()
             opt = Adam(model.parameters())
+            scheduler = ExponentialLR(opt, gamma=0.95)
 
             print('Training model...')
             for i in range(N_EPOCHS):
                 print('Epoch {}/{}...'.format(i + 1, N_EPOCHS))
                 training_loop(loader_train, model, loss_cl, opt)
+                scheduler.step()
 
             print('Evaluating model...')
             rmsd_min_test, rmsd_ave_test, n_rmsd_test, rmsd_min_pred, rmsd_ave_pred, n_rmsd_pred, mask = eval_loop(loader_test, model)

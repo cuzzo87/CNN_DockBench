@@ -15,6 +15,10 @@ REQUIRED_FILES = ['coords.npy', 'grid_centers.npy', 'channels.npy', 'ligand.sdf'
                   'center.npy', 'rmsd_min.npy', 'rmsd_ave.npy', 'n_rmsd.npy', 'resolution.npy']
 
 
+def home():
+    return os.path.dirname(__file__)
+
+
 def geom_center(mol):
     """
     Returns molecule geometric center

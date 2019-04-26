@@ -5,15 +5,13 @@ import shutil
 from glob import glob
 
 import numpy as np
-from moleculekit.molecule import Molecule
-from moleculekit.tools.atomtyper import prepareProteinForAtomtyping
-from moleculekit.tools.voxeldescriptors import getCenters, getChannels
 from rdkit.Chem import SDMolSupplier
 from tqdm import tqdm
 
-from cnndockbench import home
-from cnndockbench.utils import (REQUIRED_FILES, check_required_files,
-                                geom_center)
+from moleculekit.molecule import Molecule
+from moleculekit.tools.atomtyper import prepareProteinForAtomtyping
+from moleculekit.tools.voxeldescriptors import getCenters, getChannels
+from utils import REQUIRED_FILES, check_required_files, geom_center, home
 
 DATA_PATH = os.path.join(home(), 'cases')
 OUTDIR = os.path.join(home(), 'data')

@@ -8,7 +8,7 @@ from torch.utils.data import Dataset
 from moleculekit.molecule import Molecule
 from moleculekit.tools.voxeldescriptors import getVoxelDescriptors
 
-from cnndockbench.preprocess import FAIL_FLAG
+from preprocess import FAIL_FLAG
 
 
 class Featurizer(Dataset):
