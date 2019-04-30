@@ -3,6 +3,7 @@ import pickle
 
 import numpy as np
 from scipy.stats import spearmanr, kendalltau
+from sklearn.metrics import cohen_kappa_score
 
 from preprocess import PROTOCOLS
 from train import EVAL_MODES, N_SPLITS
@@ -83,7 +84,7 @@ def regression_metrics(rmsd_test, rmsd_pred, mask):
             corrs.append(1.0)
             continue
         elif len(u_t) == 1 or len(u_p) == 1:
-            corrs.append(1.0)
+            corrs.append(0.0)
             continue
         else:
             corrs.append(corr(r_t, r_p))
@@ -103,6 +104,8 @@ def ordinal_metrics(score_test, score_pred, mask):
     rmse_macros = []
     rhos = []
     taus = []
+    kappas_lin = []
+    kappas_quad = []
 
     for idx_protocol in range(len(PROTOCOLS)):
         s_t, s_p = (score_test[:, idx_protocol])[mask[:, idx_protocol].astype(np.bool)], \
@@ -116,15 +119,21 @@ def ordinal_metrics(score_test, score_pred, mask):
         if len(np.intersect1d(u_t, u_p)) == 1:
             rhos.append(1.0)
             taus.append(1.0)
+            kappas_lin.append(1.0)
+            kappas_quad.append(1.0)
             continue
         elif len(u_t) == 1 or len(u_p) == 1:
             rhos.append(0.0)
             taus.append(0.0)
+            kappas_lin.append(0.0)
+            kappas_quad.append(0.0)
             continue
         else:
             rhos.append(spearmanr(s_t, s_p, nan_policy='raise')[0])
             taus.append(kendalltau(s_t, s_p, nan_policy='raise')[0])
-    return mae_micros, mae_macros, rmse_micros, rmse_macros, rhos, taus
+            kappas_lin.append(cohen_kappa_score(s_t, s_p, weights='linear'))
+            kappas_quad.append(cohen_kappa_score(s_t, s_p, weights='quadratic'))
+    return mae_micros, mae_macros, rmse_micros, rmse_macros, rhos, taus, kappas_lin, kappas_quad
 
 
 if __name__ == '__main__':
@@ -150,7 +159,7 @@ if __name__ == '__main__':
             score_pred = compute_score(rmsd_ave_pred, n_rmsd_pred, resolution, n_complex)
 
             rmses_ave, corrs_ave = regression_metrics(rmsd_ave_test, rmsd_ave_pred, mask)
-            mae_micros, mae_macros, rmse_micros, rmse_macros, rhos, taus = ordinal_metrics(score_test, score_pred, mask)
+            mae_micros, mae_macros, rmse_micros, rmse_macros, rhos, taus, kappas_lin, kappas_quad = ordinal_metrics(score_test, score_pred, mask)
 
             results.setdefault(mode, {})
 
@@ -164,6 +173,9 @@ if __name__ == '__main__':
                 results[mode][protocol].setdefault('rmse_macro', []).append(rmse_macros[i])
                 results[mode][protocol].setdefault('rho_ave', []).append(rhos[i])
                 results[mode][protocol].setdefault('tau_ave', []).append(taus[i])
+                results[mode][protocol].setdefault('kappa_lin', []).append(kappas_lin[i])
+                results[mode][protocol].setdefault('kappa_quad', []).append(kappas_quad[i])
+
 
     with open(os.path.join(RES_DIR, 'results.pkl'), 'wb') as handle:
         pickle.dump(results, handle)
