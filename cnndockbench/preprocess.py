@@ -33,6 +33,8 @@ def build_guide(path):
 
     guide = {}
 
+    not_provided_cases = []
+
     for case in cases:
         ref_file = os.path.join(case, 'RMSD.txt')
 
@@ -46,6 +48,10 @@ def build_guide(path):
                     pdbid = match[1].split('_')[0]
                     protocol = match[2] + '-' + match[3]
 
+                    if 'RESOLUTION' not in lines[i + 5]:
+                        not_provided_cases.append(os.path.basename(os.path.dirname(case)) + '-' + line)
+                        continue
+
                     rmsd_min = float(
                         lines[i + 2].split(':')[1].strip('\n').strip('\t'))
                     rmsd_ave = float(
@@ -56,8 +62,7 @@ def build_guide(path):
                         n_rmsd = int(lines[i + 4].split(':')
                                      [1].strip('\n').strip('\t'))
 
-                    resolution = float(
-                        lines[i + 5].split(':')[1].split(' ')[0].strip('\t'))
+                    resolution = float(lines[i + 5].split(':')[1].split(' ')[0].strip('\t'))
 
                     if pdbid not in guide:
                         guide[pdbid] = {}
@@ -89,7 +94,7 @@ def build_guide(path):
 
     for pdbid in all_missing_cases:
         guide.pop(pdbid, None)
-    return guide, not_complete_cases, all_missing_cases
+    return guide, not_complete_cases, all_missing_cases, not_provided_cases
 
 
 def clean_data(guide, path, outpath):
@@ -99,7 +104,10 @@ def clean_data(guide, path, outpath):
     protein_exclude = []
     ligand_exclude = []
 
-    for pdbid in tqdm(guide.keys()):
+    progress = tqdm(guide.keys())
+
+    for pdbid in progress:
+        progress.set_postfix({'pdbid': pdbid})
         pdboutdir = os.path.join(outpath, pdbid)
         if pdbid in SKIP_IDS:
             continue
@@ -173,10 +181,11 @@ def clean_data(guide, path, outpath):
 if __name__ == '__main__':
     print('Cleaning input data...')
     os.makedirs(OUTDIR, exist_ok=True)
-    guide, not_complete_cases, all_missing_cases = build_guide(DATA_PATH)
+    guide, not_complete_cases, all_missing_cases, not_provided_cases = build_guide(DATA_PATH)
     print('After cleaning input files, {} cases were correctly parsed.'.format(len(guide)),
           '{} contained incomplete docking cases, with ids: {}.'.format(len(not_complete_cases), not_complete_cases),
-          '{} featured all missing cases, with ids: {}.'.format(len(all_missing_cases), all_missing_cases), sep='\n')
+          '{} featured all missing cases, with ids: {}.'.format(len(all_missing_cases), all_missing_cases),
+          '{} cases were in the files, but not provided, with matches: {}'.format(len(not_provided_cases), not_provided_cases), sep='\n')
 
     protein_exclude, ligand_exclude = clean_data(guide, DATA_PATH, OUTDIR)
     if protein_exclude:
