@@ -19,7 +19,8 @@ REGEX_PATTERN = r'\w*\-\w*_min\-\w*-\w*'
 PROTOCOLS = ['autodock-ga', 'autodock-lga', 'autodock-ls', 'glide-sp', 'gold-asp', 'gold-chemscore',
              'gold-goldscore', 'gold-plp', 'moe-AffinitydG', 'moe-GBVIWSA', 'moe-LondondG',
              'plants-chemplp', 'plants-plp95', 'plants-plp', 'rdock-solv', 'rdock-std', 'vina-std']
-SKIP_IDS = ['1r9l', '1px4']
+SKIP_IDS = ['1r9l', '1px4', '2f2h', '3i3b', '3mv0', '3t09', '3t0d', '3t2q', '3vdb', '3f37', '3k1j', '3f34', '3dyo',
+            '3muz', '3t08', '3t0b', '3vd4', '3vd9', '3f33']
 N_PROTOCOLS = len(PROTOCOLS)
 FAIL_FLAG = 99.0
 
@@ -121,8 +122,12 @@ def clean_data(guide, path, outpath):
         receptor_dir = os.path.join(case, 'receptors')
 
         # Get pocket center
-        cocrystal = Molecule(os.path.join(
-            cocrystal_dir, '{}.pdb'.format(pdbid)), keepaltloc="all")
+        try:
+            cocrystal = Molecule(os.path.join(
+                cocrystal_dir, '{}.pdb'.format(pdbid)), keepaltloc="all")
+        except Exception as _:
+            protein_exclude.append(pdbid)
+            continue
         ligand = cocrystal.copy()
         ligand.filter('resname {}'.format(guide[pdbid]['resname'].upper()))
         center = geom_center(ligand)
@@ -148,10 +153,15 @@ def clean_data(guide, path, outpath):
             ligand_exclude.append(pdbid)
             continue
 
-        os.makedirs(pdboutdir, exist_ok=True)
-
         grid_centers, _ = getCenters(protein, boxsize=[24]*3, center=center)
-        channels, _ = getChannels(protein)
+
+        try:
+            channels, _ = getChannels(protein)
+        except Exception as _:
+            protein_exclude.append(pdbid)
+            continue
+
+        os.makedirs(pdboutdir, exist_ok=True)
 
         np.save(os.path.join(pdboutdir, 'center.npy'), arr=center)
         np.save(os.path.join(pdboutdir, 'coords.npy'), arr=protein.coords)
@@ -189,7 +199,7 @@ if __name__ == '__main__':
 
     protein_exclude, ligand_exclude = clean_data(guide, DATA_PATH, OUTDIR)
     if protein_exclude:
-        print('Several proteins were not correctly filtered or could not be featurized: {}'.format(
+        print('Several proteins were not correctly read, filtered or could not be featurized: {}'.format(
             protein_exclude))
 
     if ligand_exclude:

@@ -19,7 +19,7 @@ NUM_WORKERS = int(multiprocessing.cpu_count() / 2)
 DATA_PATH = os.path.join(home(), 'data')
 RES_PATH = os.path.join(home(), 'results')
 
-N_EPOCHS = 100
+N_EPOCHS = 200
 N_SPLITS = 10
 BATCH_SIZE = 32
 EVAL_MODES = ['random', 'ligand_scaffold']
