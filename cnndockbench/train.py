@@ -20,7 +20,7 @@ DATA_PATH = os.path.join(home(), 'data')
 RES_PATH = os.path.join(home(), 'results')
 
 N_EPOCHS = 200
-N_SPLITS = 10
+N_SPLITS = 5
 BATCH_SIZE = 32
 EVAL_MODES = ['random', 'ligand_scaffold']
 
@@ -98,7 +98,7 @@ if __name__ == '__main__':
         sp = Splitter(*data, n_splits=N_SPLITS, method=mode)
         for split_no in range(N_SPLITS):
             print('Now evaluating split {}/{} with strategy {}'.format(split_no + 1, N_SPLITS, mode))
-            train_data, test_data = sp.get_split(split_no=split_no, mode=mode)
+            train_data, test_data = sp.get_split(split_no=split_no)
 
             feat_train = Featurizer(*train_data)
             feat_test = Featurizer(*test_data)

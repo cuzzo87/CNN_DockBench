@@ -127,7 +127,7 @@ class Splitter:
             indices_test = np.where(labels == split_no)[0]
             self.splits.append((indices_train, indices_test))
 
-    def get_split(self, split_no, mode='random'):
+    def get_split(self, split_no):
         train_idx, test_idx = self.splits[split_no] 
         return (self.coords[train_idx], self.grid_centers[train_idx], self.channels[train_idx],
                 self.centers[train_idx], self.ligands[train_idx], self.rmsd_min[train_idx],
