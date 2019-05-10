@@ -38,6 +38,8 @@ def build_guide(path):
 
     for case in cases:
         ref_file = os.path.join(case, 'RMSD.txt')
+        if not os.path.exists(ref_file):
+            continue
 
         with open(ref_file, 'r+') as handle:
             lines = handle.readlines()
@@ -50,7 +52,8 @@ def build_guide(path):
                     protocol = match[2] + '-' + match[3]
 
                     if 'RESOLUTION' not in lines[i + 5]:
-                        not_provided_cases.append(os.path.basename(os.path.dirname(case)) + '-' + line)
+                        not_provided_cases.append(os.path.basename(
+                            os.path.dirname(case)) + '-' + line)
                         continue
 
                     rmsd_min = float(
@@ -63,7 +66,8 @@ def build_guide(path):
                         n_rmsd = int(lines[i + 4].split(':')
                                      [1].strip('\n').strip('\t'))
 
-                    resolution = float(lines[i + 5].split(':')[1].split(' ')[0].strip('\t'))
+                    resolution = float(
+                        lines[i + 5].split(':')[1].split(' ')[0].strip('\t'))
 
                     if pdbid not in guide:
                         guide[pdbid] = {}
@@ -191,10 +195,13 @@ def clean_data(guide, path, outpath):
 if __name__ == '__main__':
     print('Cleaning input data...')
     os.makedirs(OUTDIR, exist_ok=True)
-    guide, not_complete_cases, all_missing_cases, not_provided_cases = build_guide(DATA_PATH)
+    guide, not_complete_cases, all_missing_cases, not_provided_cases = build_guide(
+        DATA_PATH)
     print('After cleaning input files, {} cases were correctly parsed.'.format(len(guide)),
-          '{} contained incomplete docking cases, with ids: {}.'.format(len(not_complete_cases), not_complete_cases),
-          '{} featured all missing cases, with ids: {}.'.format(len(all_missing_cases), all_missing_cases),
+          '{} contained incomplete docking cases, with ids: {}.'.format(
+              len(not_complete_cases), not_complete_cases),
+          '{} featured all missing cases, with ids: {}.'.format(
+              len(all_missing_cases), all_missing_cases),
           '{} cases were in the files, but not provided, with matches: {}'.format(len(not_provided_cases), not_provided_cases), sep='\n')
 
     protein_exclude, ligand_exclude = clean_data(guide, DATA_PATH, OUTDIR)
