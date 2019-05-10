@@ -69,8 +69,18 @@ def get_protein_features(usercoords, usercenters, userchannels, rotate_over=None
     Featurizes protein pocket using 3D voxelization
     """
     if rotate_over is not None:
-        # TODO rotations
-        pass
+        alpha = np.random.uniform(0, 2 * np.pi)
+        beta = np.random.uniform(0, 2 * np.pi)
+        gamma = np.random.uniform(0, 2 * np.pi)        
+        
+        usercoords = (usercoords.squeeze() - rotate_over)
+        usercoords = usercoords.T.copy()
+        Rz = np.array([[np.cos(alpha), -np.sin(alpha), 0], [np.sin(alpha), np.cos(alpha), 0], [0, 0, 1]])
+        Ry = np.array([[np.cos(beta), 0, np.sin(beta)], [0, 1, 0], [-np.sin(beta), 0, np.cos(beta)]])
+        Rx = np.array([[1, 0, 0], [0, np.cos(gamma), -np.sin(gamma)], [0, np.sin(gamma), np.cos(gamma)]])
+        R = Rz @ Ry @ Rx
+        usercoords = ((R @ usercoords).T.copy() + rotate_over).astype(np.float32)
+
     features = getVoxelDescriptors(mol=None,
                                    usercoords=usercoords,
                                    usercenters=usercenters,

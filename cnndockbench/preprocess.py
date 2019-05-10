@@ -134,6 +134,9 @@ def clean_data(guide, path, outpath):
             continue
         ligand = cocrystal.copy()
         ligand.filter('resname {}'.format(guide[pdbid]['resname'].upper()))
+        if ligand.numAtoms == 0:
+            ligand_exclude.append(pdbid)
+            continue
         center = geom_center(ligand)
 
         # Featurize protein and copy ligand in their corresponding folder
