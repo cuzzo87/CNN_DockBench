@@ -136,6 +136,20 @@ def ordinal_metrics(score_test, score_pred, mask):
     return mae_micros, mae_macros, rmse_micros, rmse_macros, rhos, taus, kappas_lin, kappas_quad
 
 
+def average_results(results_dict):
+    """
+    Computes average results over splits.
+    """
+    avg_results = {}
+    for mode in EVAL_MODES:
+        avg_results.setdefault(mode, {})
+        for protocol in results_dict[mode].keys():
+            avg_results[mode].setdefault(protocol, {})
+            for metric, values in results_dict[mode][protocol].items():
+                avg_results[mode][protocol][metric] = np.mean(values)
+    return avg_results
+
+
 if __name__ == '__main__':
     results = {}
     np.seterr(all='ignore')
@@ -145,9 +159,11 @@ if __name__ == '__main__':
             resolution = np.load(os.path.join(RES_DIR, 'resolution_{}_{}.npy'.format(mode, split_no)))
             mask = np.load(os.path.join(RES_DIR, 'mask_{}_{}.npy'.format(mode, split_no))).astype(np.bool)
 
+            rmsd_min_test = np.load(os.path.join(RES_DIR, 'rmsd_min_test_{}_{}.npy'.format(mode, split_no)))
             rmsd_ave_test = np.load(os.path.join(RES_DIR, 'rmsd_ave_test_{}_{}.npy'.format(mode, split_no)))
             n_rmsd_test = np.load(os.path.join(RES_DIR, 'n_rmsd_test_{}_{}.npy'.format(mode, split_no)))
 
+            rmsd_min_pred = np.load(os.path.join(RES_DIR, 'rmsd_min_pred_{}_{}.npy'.format(mode, split_no)))
             rmsd_ave_pred = np.load(os.path.join(RES_DIR, 'rmsd_ave_pred_{}_{}.npy'.format(mode, split_no)))
             n_rmsd_pred = np.load(os.path.join(RES_DIR, 'n_rmsd_pred_{}_{}.npy'.format(mode, split_no)))
 
@@ -158,6 +174,7 @@ if __name__ == '__main__':
             score_test = compute_score(rmsd_ave_test, n_rmsd_test, resolution, n_complex)
             score_pred = compute_score(rmsd_ave_pred, n_rmsd_pred, resolution, n_complex)
 
+            rmses_min, corrs_min = regression_metrics(rmsd_min_test, rmsd_min_pred, mask)
             rmses_ave, corrs_ave = regression_metrics(rmsd_ave_test, rmsd_ave_pred, mask)
             mae_micros, mae_macros, rmse_micros, rmse_macros, rhos, taus, kappas_lin, kappas_quad = ordinal_metrics(score_test, score_pred, mask)
 
@@ -165,6 +182,8 @@ if __name__ == '__main__':
 
             for i, protocol in enumerate(PROTOCOLS):
                 results[mode].setdefault(protocol, {})
+                results[mode][protocol].setdefault('rmse_min', []).append(rmses_min[i])
+                results[mode][protocol].setdefault('corr_min', []).append(corrs_min[i])
                 results[mode][protocol].setdefault('rmse_ave', []).append(rmses_ave[i])
                 results[mode][protocol].setdefault('corr_ave', []).append(corrs_ave[i])
                 results[mode][protocol].setdefault('mae_micro', []).append(mae_micros[i])
@@ -176,6 +195,10 @@ if __name__ == '__main__':
                 results[mode][protocol].setdefault('kappa_lin', []).append(kappas_lin[i])
                 results[mode][protocol].setdefault('kappa_quad', []).append(kappas_quad[i])
 
-
     with open(os.path.join(RES_DIR, 'results.pkl'), 'wb') as handle:
         pickle.dump(results, handle)
+
+    avg_results = average_results(results)
+
+    with open(os.path.join(RES_DIR, 'avg_results.pkl'), 'wb') as handle:
+        pickle.dump(avg_results, handle)
