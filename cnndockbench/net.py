@@ -11,8 +11,9 @@ class TwoLegs(nn.Module):
         self.channels = channels
         self.fp_size = fp_size
 
-        self.linear_fp1 = nn.Linear(fp_size, 512)
-        self.linear_fp2 = nn.Linear(512, 512)
+        self.linear_fp1 = nn.Linear(fp_size, 1024)
+        self.linear_fp2 = nn.Linear(1024, 512)
+        self.linear_fp3 = nn.Linear(512, 512)
 
         self.conv_voxel1 = nn.Conv3d(self.channels, 64, kernel_size=3)
         self.conv_voxel2 = nn.Conv3d(64, 64, kernel_size=3)
@@ -28,7 +29,8 @@ class TwoLegs(nn.Module):
 
     def _fingerprint_forward(self, fp):
         x = F.relu(self.linear_fp1(fp))
-        return F.relu(self.linear_fp2(x))
+        x = F.relu(self.linear_fp2(x))
+        return F.relu(self.linear_fp3(x))
 
     def _pocket_forward(self, voxel):
         x = F.relu(self.conv_voxel1(voxel))
