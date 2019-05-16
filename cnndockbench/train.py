@@ -14,7 +14,7 @@ from utils import home, Splitter, get_data
 
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-NUM_WORKERS = int(multiprocessing.cpu_count() / 2)
+NUM_WORKERS = int(multiprocessing.cpu_count())
 
 DATA_PATH = os.path.join(home(), 'data')
 RES_PATH = os.path.join(home(), 'results')
