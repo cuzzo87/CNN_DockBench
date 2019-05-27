@@ -11,7 +11,9 @@ from tqdm import tqdm
 from moleculekit.molecule import Molecule
 from moleculekit.tools.atomtyper import prepareProteinForAtomtyping
 from moleculekit.tools.voxeldescriptors import getCenters, getChannels
+from moleculekit.smallmol.smallmol import SmallMol
 from utils import REQUIRED_FILES, check_required_files, geom_center, home
+
 
 DATA_PATH = os.path.join(home(), 'cases')
 OUTDIR = os.path.join(home(), 'data')
@@ -141,8 +143,7 @@ def clean_data(guide, path, outpath):
 
         # Featurize protein and copy ligand in their corresponding folder
         protein_path = os.path.join(receptor_dir, '{}.mol2'.format(pdbid))
-        ligand_path = os.path.join(
-            ligand_dir, '{}-{}_min.sdf'.format(guide[pdbid]['resname'], pdbid))
+        ligand_path = os.path.join(ligand_dir, '{}-{}_min.sdf'.format(guide[pdbid]['resname'], pdbid))
         protein = Molecule(protein_path)
         protein.filter('protein')
         try:
@@ -156,9 +157,10 @@ def clean_data(guide, path, outpath):
             continue
 
         ligand = [mol for mol in SDMolSupplier(ligand_path)][0]
-        if ligand is None:
-            ligand_exclude.append(pdbid)
-            continue
+        ligand = SmallMol(ligand)
+        # if ligand is None:
+        #    ligand_exclude.append(pdbid)
+        #    continue
 
         grid_centers, _ = getCenters(protein, boxsize=[24]*3, center=center)
 
@@ -168,14 +170,22 @@ def clean_data(guide, path, outpath):
             protein_exclude.append(pdbid)
             continue
 
+        try:
+            channels_ligand, _ = getChannels(ligand)
+        except Exception as _:
+            ligand_exclude.append(pdbid)
+
         os.makedirs(pdboutdir, exist_ok=True)
 
         np.save(os.path.join(pdboutdir, 'center.npy'), arr=center)
         np.save(os.path.join(pdboutdir, 'coords.npy'), arr=protein.coords)
         np.save(os.path.join(pdboutdir, 'grid_centers.npy'), arr=grid_centers)
         np.save(os.path.join(pdboutdir, 'channels.npy'), arr=channels)
+        np.save(os.path.join(pdboutdir, 'coords_ligand.npy'), arr=ligand._coords)
+        np.save(os.path.join(pdboutdir, 'channels_ligand.npy'), arr=channels_ligand)
+        
 
-        shutil.copy(ligand_path, os.path.join(pdboutdir, 'ligand.sdf'))
+        # shutil.copy(ligand_path, os.path.join(pdboutdir, 'ligand.sdf'))
 
         # Correctly format protocols
         rmsd_min = []
