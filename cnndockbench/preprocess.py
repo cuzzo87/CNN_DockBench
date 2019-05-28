@@ -129,8 +129,7 @@ def clean_data(guide, path, outpath):
 
         # Get pocket center
         try:
-            cocrystal = Molecule(os.path.join(
-                cocrystal_dir, '{}.pdb'.format(pdbid)), keepaltloc="all")
+            cocrystal = Molecule(os.path.join(cocrystal_dir, '{}.pdb'.format(pdbid)), keepaltloc="all")
         except Exception as _:
             protein_exclude.append(pdbid)
             continue
@@ -139,7 +138,7 @@ def clean_data(guide, path, outpath):
         if ligand.numAtoms == 0:
             ligand_exclude.append(pdbid)
             continue
-        center = geom_center(ligand)
+        center_pocket = geom_center(ligand)
 
         # Featurize protein and copy ligand in their corresponding folder
         protein_path = os.path.join(receptor_dir, '{}.mol2'.format(pdbid))
@@ -157,12 +156,16 @@ def clean_data(guide, path, outpath):
             continue
 
         ligand = [mol for mol in SDMolSupplier(ligand_path)][0]
-        ligand = SmallMol(ligand)
-        # if ligand is None:
-        #    ligand_exclude.append(pdbid)
-        #    continue
+        try:
+            ligand = SmallMol(ligand)
+        except Exception as _:
+            ligand_exclude.append(pdbid)
+            continue
 
-        grid_centers, _ = getCenters(protein, boxsize=[24]*3, center=center)
+        center_ligand = geom_center(ligand)
+
+        grid_centers, _ = getCenters(protein, boxsize=[24]*3, center=center_pocket)
+        grid_centers_ligand, _ = getCenters(ligand, boxsize=[24]*3, center=center_ligand)
 
         try:
             channels, _ = getChannels(protein)
@@ -177,15 +180,14 @@ def clean_data(guide, path, outpath):
 
         os.makedirs(pdboutdir, exist_ok=True)
 
-        np.save(os.path.join(pdboutdir, 'center.npy'), arr=center)
+        np.save(os.path.join(pdboutdir, 'center.npy'), arr=center_pocket)
         np.save(os.path.join(pdboutdir, 'coords.npy'), arr=protein.coords)
         np.save(os.path.join(pdboutdir, 'grid_centers.npy'), arr=grid_centers)
         np.save(os.path.join(pdboutdir, 'channels.npy'), arr=channels)
+        np.save(os.path.join(pdboutdir, 'center_ligand.npy'), arr=center_ligand)
         np.save(os.path.join(pdboutdir, 'coords_ligand.npy'), arr=ligand._coords)
+        np.save(os.path.join(pdboutdir, 'grid_centers_ligand.npy'), arr=grid_centers_ligand)
         np.save(os.path.join(pdboutdir, 'channels_ligand.npy'), arr=channels_ligand)
-        
-
-        # shutil.copy(ligand_path, os.path.join(pdboutdir, 'ligand.sdf'))
 
         # Correctly format protocols
         rmsd_min = []
