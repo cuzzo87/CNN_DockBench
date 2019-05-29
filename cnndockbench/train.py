@@ -22,7 +22,7 @@ RES_PATH = os.path.join(home(), 'results')
 N_EPOCHS = 200
 N_SPLITS = 5
 BATCH_SIZE = 32
-EVAL_MODES = ['random', 'ligand_scaffold']
+EVAL_MODES = ['random']
 
 
 def training_loop(loader, model, loss_cl, opt):
@@ -33,16 +33,16 @@ def training_loop(loader, model, loss_cl, opt):
     model = model.train()
     progress = tqdm(loader)
 
-    for voxel, fp, rmsd_min, rmsd_ave, n_rmsd, mask in progress:
-        voxel = voxel.to(DEVICE)
-        fp = fp.to(DEVICE)
+    for voxel_p, voxel_l, rmsd_min, rmsd_ave, n_rmsd, mask in progress:
+        voxel_p = voxel_p.to(DEVICE)
+        voxel_l = voxel_l.to(DEVICE)
         rmsd_min = rmsd_min.to(DEVICE)[mask]
         rmsd_ave = rmsd_ave.to(DEVICE)[mask]
         n_rmsd = n_rmsd.to(DEVICE)[mask]
 
         opt.zero_grad()
 
-        out1, out2, out3 = model(voxel, fp)
+        out1, out2, out3 = model(voxel_p, voxel_l)
         loss_rmsd_min, loss_rmsd_ave, loss_n_rmsd = loss_cl(
             out1[mask], out2[mask], out3[mask], rmsd_min, rmsd_ave, n_rmsd)
         loss = loss_rmsd_min + loss_rmsd_ave + loss_n_rmsd
@@ -71,12 +71,12 @@ def eval_loop(loader, model):
     rmsd_ave_pred = []
     n_rmsd_pred = []
 
-    for voxel, fp, rmsd_min, rmsd_ave, n_rmsd, mask in progress:
+    for voxel_p, voxel_l, rmsd_min, rmsd_ave, n_rmsd, mask in progress:
         with torch.no_grad():
-            voxel = voxel.to(DEVICE)
-            fp = fp.to(DEVICE)
+            voxel_p = voxel_p.to(DEVICE)
+            voxel_l = voxel_l.to(DEVICE)
 
-            out1, out2, out3 = model(voxel, fp)
+            out1, out2, out3 = model(voxel_p, voxel_l)
             out3 = torch.round(torch.exp(out3)).clamp(max=20).type(torch.int)
 
             rmsd_min_all.append(rmsd_min)

@@ -12,7 +12,9 @@ from preprocess import FAIL_FLAG
 
 
 class Featurizer(Dataset):
-    def __init__(self, coords, grid_centers, channels, centers, ligands, rmsd_min, rmsd_ave, n_rmsd):
+    def __init__(self, coords, grid_centers, channels, centers,
+                 coords_ligand, grid_centers_ligand, channels_ligand, centers_ligand,
+                 rmsd_min, rmsd_ave, n_rmsd):
         """
         Produces voxels for protein pocket and fingerprint for ligand.
         """
@@ -20,24 +22,30 @@ class Featurizer(Dataset):
         self.grid_centers = grid_centers
         self.channels = channels
         self.centers = centers
-        self.ligands = ligands
+        self.coords_ligand = coords_ligand
+        self.grid_centers_ligand = grid_centers_ligand
+        self.channels_ligand = channels_ligand
+        self.centers_ligand = centers_ligand
         self.rmsd_min = rmsd_min
         self.rmsd_ave = rmsd_ave
         self.n_rmsd = n_rmsd
 
     def __getitem__(self, index):
-        center = np.load(self.centers[index])
-        ligand = next(SDMolSupplier(self.ligands[index]))
         rmsd_min = np.load(self.rmsd_min[index]).astype(np.float32)
         rmsd_ave = np.load(self.rmsd_ave[index]).astype(np.float32)
         n_rmsd = np.load(self.n_rmsd[index]).astype(np.float32)
-        prot_feat, _ = get_protein_features(usercoords=np.load(self.coords[index]),
+        prot_feat, _ = get_voxel_features(usercoords=np.load(self.coords[index]),
                                             usercenters=np.load(self.grid_centers[index]),
                                             userchannels=np.load(self.channels[index]),
-                                            rotate_over=center)
+                                            rotate_over=np.load(self.centers[index]))
         prot_feat = np.transpose(prot_feat.reshape((24, 24, 24, 8)),
                                  axes=(3, 0, 1, 2)).astype(np.float32)
-        lig_feat = get_ligand_features(ligand)
+        lig_feat = get_voxel_features(usercoords=np.load(self.coords_ligand[index]),
+                                            usercenters=np.load(self.grid_centers_ligand[index]),
+                                            userchannels=np.load(self.channels_ligand[index]),
+                                            rotate_over=np.load(self.centers_ligand[index]))
+        lig_feat = np.transpose(lig_feat.reshape((24, 24, 24, 8)),
+                                 axes=(3, 0, 1, 2)).astype(np.float32)
         mask = (rmsd_min != FAIL_FLAG).astype(np.uint8)
         return torch.from_numpy(prot_feat), torch.from_numpy(lig_feat),\
                torch.from_numpy(rmsd_min), torch.from_numpy(rmsd_ave),\
@@ -64,7 +72,7 @@ class CombinedLoss(nn.Module):
         return loss_rmsd_min, loss_rmsd_ave, loss_n_rmsd
 
 
-def get_protein_features(usercoords, usercenters, userchannels, rotate_over=None, boxsize=[24]*3):
+def get_voxel_features(usercoords, usercenters, userchannels, rotate_over=None, boxsize=[24]*3):
     """
     Featurizes protein pocket using 3D voxelization
     """
@@ -86,14 +94,3 @@ def get_protein_features(usercoords, usercenters, userchannels, rotate_over=None
                                    usercenters=usercenters,
                                    userchannels=userchannels)
     return features
-
-
-def get_ligand_features(mol):
-    """
-    Featurizes ligand using a Morgan fingerprint
-    """
-    fp = AllChem.GetMorganFingerprintAsBitVect(
-        mol, 2, nBits=1024, useChirality=True)
-    arr = np.zeros((1,), dtype=np.float32)
-    DataStructs.ConvertToNumpyArray(fp, arr)
-    return arr
