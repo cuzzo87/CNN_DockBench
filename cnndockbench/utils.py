@@ -72,8 +72,10 @@ def get_data(path):
             channels.append(os.path.join(subfolder, 'channels.npy'))
             centers.append(os.path.join(subfolder, 'center.npy'))
             coords_ligand.append(os.path.join(subfolder, 'coords_ligand.npy'))
-            grid_centers_ligand.append(os.path.join(subfolder, 'grid_centers_ligand.npy'))
-            channels_ligand.append(os.path.join(subfolder, 'channels_ligand.npy'))
+            grid_centers_ligand.append(os.path.join(
+                subfolder, 'grid_centers_ligand.npy'))
+            channels_ligand.append(os.path.join(
+                subfolder, 'channels_ligand.npy'))
             centers_ligand.append(os.path.join(subfolder, 'center_ligand.npy'))
             rmsd_min.append(os.path.join(subfolder, 'rmsd_min.npy'))
             rmsd_ave.append(os.path.join(subfolder, 'rmsd_ave.npy'))
@@ -96,10 +98,10 @@ class Splitter:
         self.grid_centers = np.array(grid_centers)
         self.channels = np.array(channels)
         self.centers = np.array(centers)
-        self.coords_ligand = coords_ligand
-        self.grid_centers_ligand = grid_centers_ligand
-        self.channels_ligand = channels_ligand
-        self.centers_ligand = centers_ligand
+        self.coords_ligand = np.array(coords_ligand)
+        self.grid_centers_ligand = np.array(grid_centers_ligand)
+        self.channels_ligand = np.array(channels_ligand)
+        self.centers_ligand = np.array(centers_ligand)
         self.rmsd_min = np.array(rmsd_min)
         self.rmsd_ave = np.array(rmsd_ave)
         self.n_rmsd = np.array(n_rmsd)
@@ -157,11 +159,12 @@ class Splitter:
         train_idx, test_idx = self.splits[split_no]
         return (self.coords[train_idx], self.grid_centers[train_idx], self.channels[train_idx],
                 self.centers[train_idx], self.coords_ligand[train_idx],
-                self.grid_centers_ligand[train_idx], self.centers_ligand[train_idx], self.rmsd_min[train_idx],
+                self.grid_centers_ligand[train_idx], self.channels_ligand[
+                    train_idx], self.centers_ligand[train_idx], self.rmsd_min[train_idx],
                 self.rmsd_ave[train_idx], self.n_rmsd[train_idx]), (self.coords[test_idx],
                                                                     self.grid_centers[test_idx], self.channels[
                                                                         test_idx], self.centers[test_idx],
-                                                                    self.coords_ligand[test_idx], self.grid_centers_ligand[test_idx], self.centers_ligand[
+                                                                    self.coords_ligand[test_idx], self.grid_centers_ligand[test_idx], self.channels_ligand[test_idx], self.centers_ligand[
                                                                         test_idx], self.rmsd_min[test_idx], self.rmsd_ave[test_idx],
                                                                     self.n_rmsd[test_idx])
 

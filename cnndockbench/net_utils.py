@@ -40,7 +40,7 @@ class Featurizer(Dataset):
                                             rotate_over=np.load(self.centers[index]))
         prot_feat = np.transpose(prot_feat.reshape((24, 24, 24, 8)),
                                  axes=(3, 0, 1, 2)).astype(np.float32)
-        lig_feat = get_voxel_features(usercoords=np.load(self.coords_ligand[index]),
+        lig_feat, _ = get_voxel_features(usercoords=np.load(self.coords_ligand[index]),
                                             usercenters=np.load(self.grid_centers_ligand[index]),
                                             userchannels=np.load(self.channels_ligand[index]),
                                             rotate_over=np.load(self.centers_ligand[index]))

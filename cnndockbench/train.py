@@ -113,7 +113,7 @@ if __name__ == '__main__':
                                      num_workers=NUM_WORKERS,
                                      shuffle=False)
 
-            model = TwoLegs().cuda()
+            model = TwoLegs().to(DEVICE)
             loss_cl = CombinedLoss()
             opt = Adam(model.parameters())
             scheduler = ExponentialLR(opt, gamma=0.95)
