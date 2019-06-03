@@ -6,12 +6,12 @@ import torch.nn.functional as F
 
 
 class TwoLegs(nn.Module):
-    def __init__(self, channels=8, fp_size=1024):
+    def __init__(self, channels=8, fp_size=1024, desc_size=199):
         super(TwoLegs, self).__init__()
         self.channels = channels
         self.fp_size = fp_size
 
-        self.linear_fp1 = nn.Linear(fp_size, 1024)
+        self.linear_fp1 = nn.Linear(fp_size + desc_size, 1024)
         self.linear_fp2 = nn.Linear(1024, 512)
         self.linear_fp3 = nn.Linear(512, 512)
 

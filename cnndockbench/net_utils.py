@@ -2,7 +2,7 @@ import numpy as np
 import torch
 from torch import nn
 from rdkit import Chem, DataStructs
-from rdkit.Chem import AllChem, SDMolSupplier
+from rdkit.Chem import AllChem, SDMolSupplier, Descriptors
 from torch.utils.data import Dataset
 
 from moleculekit.molecule import Molecule
@@ -96,4 +96,18 @@ def get_ligand_features(mol):
         mol, 2, nBits=1024, useChirality=True)
     arr = np.zeros((1,), dtype=np.float32)
     DataStructs.ConvertToNumpyArray(fp, arr)
-    return arr
+    desc = get_rdkit_descriptors(mol)
+    return np.append(arr, desc)
+
+
+def get_rdkit_descriptors(mol):
+    desc_dict = dict(Descriptors.descList)
+    descs = list(desc_dict.keys())
+    descs.remove('Ipc')
+    ans = {}
+    for descname in descs:
+        desc = desc_dict[descname]
+        bin_value = desc(mol)
+        bin_name = 'DESC_{}'.format(descname)
+        ans[bin_name] = bin_value
+    return np.array(list(ans.values()), dtype=np.float32)
