@@ -1,8 +1,10 @@
+import os
+from glob import glob
 import numpy as np
 import torch
 from torch import nn
 from rdkit import Chem, DataStructs
-from rdkit.Chem import AllChem, SDMolSupplier, Descriptors
+from rdkit.Chem import AllChem, SDMolSupplier, Descriptors, Descriptors3D
 from torch.utils.data import Dataset
 
 from moleculekit.molecule import Molecule
@@ -25,6 +27,10 @@ class Featurizer(Dataset):
         self.rmsd_ave = rmsd_ave
         self.n_rmsd = n_rmsd
 
+        self.desc_cols = np.load(os.path.join(os.path.dirname(__file__), 'data', 'desc_cols.npy'))
+        self.avg_feat = np.load(os.path.join(os.path.dirname(__file__), 'data', 'avg.npy'))
+        self.std_feat = np.load(os.path.join(os.path.dirname(__file__), 'data', 'std.npy'))
+
     def __getitem__(self, index):
         center = np.load(self.centers[index])
         ligand = next(SDMolSupplier(self.ligands[index]))
@@ -37,7 +43,9 @@ class Featurizer(Dataset):
                                             rotate_over=center)
         prot_feat = np.transpose(prot_feat.reshape((24, 24, 24, 8)),
                                  axes=(3, 0, 1, 2)).astype(np.float32)
-        lig_feat = get_ligand_features(ligand)
+        fp, desc, desc3d = get_ligand_features(ligand)
+        all_desc = (np.concatenate((desc, desc3d))[self.desc_cols] - self.avg_feat) / self.std_feat
+        lig_feat = np.concatenate((fp, all_desc))
         mask = (rmsd_min != FAIL_FLAG).astype(np.uint8)
         return torch.from_numpy(prot_feat), torch.from_numpy(lig_feat),\
                torch.from_numpy(rmsd_min), torch.from_numpy(rmsd_ave),\
@@ -90,14 +98,15 @@ def get_protein_features(usercoords, usercenters, userchannels, rotate_over=None
 
 def get_ligand_features(mol):
     """
-    Featurizes ligand using a Morgan fingerprint
+    Featurizes ligand using a Morgan fingerprint and other descriptors
     """
     fp = AllChem.GetMorganFingerprintAsBitVect(
         mol, 2, nBits=1024, useChirality=True)
     arr = np.zeros((1,), dtype=np.float32)
     DataStructs.ConvertToNumpyArray(fp, arr)
     desc = get_rdkit_descriptors(mol)
-    return np.append(arr, desc)
+    desc_3d = get_rdkit_3d_descriptors(mol)
+    return arr, desc, desc_3d
 
 
 def get_rdkit_descriptors(mol):
@@ -111,3 +120,37 @@ def get_rdkit_descriptors(mol):
         bin_name = 'DESC_{}'.format(descname)
         ans[bin_name] = bin_value
     return np.array(list(ans.values()), dtype=np.float32)
+
+
+def get_rdkit_3d_descriptors(mol):
+    desc = []
+    desc.append(Descriptors3D.Asphericity(mol))
+    desc.append(Descriptors3D.Eccentricity(mol))
+    desc.append(Descriptors3D.InertialShapeFactor(mol))
+    desc.append(Descriptors3D.NPR1(mol))
+    desc.append(Descriptors3D.NPR2(mol))
+    desc.append(Descriptors3D.PMI1(mol))
+    desc.append(Descriptors3D.PMI2(mol))
+    desc.append(Descriptors3D.PMI3(mol))
+    desc.append(Descriptors3D.RadiusOfGyration(mol))
+    desc.append(Descriptors3D.SpherocityIndex(mol))
+    return np.array(desc, dtype=np.float32)
+
+
+if __name__ == '__main__':
+    # Compute overall average and std of ligand features
+    ligands = glob(os.path.join(os.path.join(os.path.dirname(__file__), 'data/*/ligand.sdf')))
+    descs = []
+
+    for ligand in ligands:
+        mol = next(SDMolSupplier(ligand))
+        descs_2d = get_rdkit_descriptors(mol)
+        descs_3d = get_rdkit_3d_descriptors(mol)
+        descs.append(np.concatenate((descs_2d, descs_3d)))
+    
+    descs = np.array(descs, dtype=np.float32)
+    empty_cols = np.where(np.std(descs, axis=0) == 0.0)
+    useful_cols = np.setdiff1d(np.arange(descs.shape[1]), empty_cols)
+    np.save(os.path.join(os.path.join(os.path.dirname(__file__), 'data/desc_cols.npy')), arr=useful_cols)    
+    np.save(os.path.join(os.path.join(os.path.dirname(__file__), 'data/avg.npy')), arr=descs[:, useful_cols].mean(axis=0))
+    np.save(os.path.join(os.path.join(os.path.dirname(__file__), 'data/std.npy')), arr=descs[:, useful_cols].std(axis=0))

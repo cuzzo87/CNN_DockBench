@@ -6,12 +6,12 @@ import torch.nn.functional as F
 
 
 class TwoLegs(nn.Module):
-    def __init__(self, channels=8, fp_size=1024, desc_size=199):
+    def __init__(self, desc_size=1216, channels=8):
         super(TwoLegs, self).__init__()
+        self.desc_size = desc_size
         self.channels = channels
-        self.fp_size = fp_size
 
-        self.linear_fp1 = nn.Linear(fp_size + desc_size, 1024)
+        self.linear_fp1 = nn.Linear(desc_size, 1024)
         self.linear_fp2 = nn.Linear(1024, 512)
         self.linear_fp3 = nn.Linear(512, 512)
 
@@ -27,7 +27,7 @@ class TwoLegs(nn.Module):
         self.linear_out2 = nn.Linear(128, 17)
         self.linear_out3 = nn.Linear(128, 17)
 
-    def _fingerprint_forward(self, fp):
+    def _ligand_forward(self, fp):
         x = F.relu(self.linear_fp1(fp))
         x = F.relu(self.linear_fp2(x))
         return F.relu(self.linear_fp3(x))
@@ -43,7 +43,7 @@ class TwoLegs(nn.Module):
 
     def forward(self, voxel, fp):
         voxel_out = self._pocket_forward(voxel)
-        fp_out = self._fingerprint_forward(fp)
+        fp_out = self._ligand_forward(fp)
         x = torch.cat([voxel_out, fp_out], dim=1)
         x = self.linear_cat1(x)
         out1 = F.relu(self.linear_out1(x))
