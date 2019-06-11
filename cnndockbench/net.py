@@ -6,7 +6,7 @@ import torch.nn.functional as F
 
 
 class TwoLegs(nn.Module):
-    def __init__(self, desc_size=1216, channels=8):
+    def __init__(self, desc_size=1206, channels=8):
         super(TwoLegs, self).__init__()
         self.desc_size = desc_size
         self.channels = channels

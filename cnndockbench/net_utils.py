@@ -43,9 +43,9 @@ class Featurizer(Dataset):
                                             rotate_over=center)
         prot_feat = np.transpose(prot_feat.reshape((24, 24, 24, 8)),
                                  axes=(3, 0, 1, 2)).astype(np.float32)
-        fp, desc, desc3d = get_ligand_features(ligand)
-        all_desc = (np.concatenate((desc, desc3d))[self.desc_cols] - self.avg_feat) / self.std_feat
-        lig_feat = np.concatenate((fp, all_desc))
+        fp, desc = get_ligand_features(ligand)
+        std_desc = (desc[self.desc_cols] - self.avg_feat) / self.std_feat
+        lig_feat = np.concatenate((fp, std_desc))
         mask = (rmsd_min != FAIL_FLAG).astype(np.uint8)
         return torch.from_numpy(prot_feat), torch.from_numpy(lig_feat),\
                torch.from_numpy(rmsd_min), torch.from_numpy(rmsd_ave),\
@@ -105,8 +105,7 @@ def get_ligand_features(mol):
     arr = np.zeros((1,), dtype=np.float32)
     DataStructs.ConvertToNumpyArray(fp, arr)
     desc = get_rdkit_descriptors(mol)
-    desc_3d = get_rdkit_3d_descriptors(mol)
-    return arr, desc, desc_3d
+    return arr, desc
 
 
 def get_rdkit_descriptors(mol):
@@ -122,19 +121,6 @@ def get_rdkit_descriptors(mol):
     return np.array(list(ans.values()), dtype=np.float32)
 
 
-def get_rdkit_3d_descriptors(mol):
-    desc = []
-    desc.append(Descriptors3D.Asphericity(mol))
-    desc.append(Descriptors3D.Eccentricity(mol))
-    desc.append(Descriptors3D.InertialShapeFactor(mol))
-    desc.append(Descriptors3D.NPR1(mol))
-    desc.append(Descriptors3D.NPR2(mol))
-    desc.append(Descriptors3D.PMI1(mol))
-    desc.append(Descriptors3D.PMI2(mol))
-    desc.append(Descriptors3D.PMI3(mol))
-    desc.append(Descriptors3D.RadiusOfGyration(mol))
-    desc.append(Descriptors3D.SpherocityIndex(mol))
-    return np.array(desc, dtype=np.float32)
 
 
 if __name__ == '__main__':
@@ -144,9 +130,7 @@ if __name__ == '__main__':
 
     for ligand in ligands:
         mol = next(SDMolSupplier(ligand))
-        descs_2d = get_rdkit_descriptors(mol)
-        descs_3d = get_rdkit_3d_descriptors(mol)
-        descs.append(np.concatenate((descs_2d, descs_3d)))
+        descs.append(get_rdkit_descriptors(mol))
     
     descs = np.array(descs, dtype=np.float32)
     empty_cols = np.where(np.std(descs, axis=0) == 0.0)
