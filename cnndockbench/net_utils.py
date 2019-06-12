@@ -11,6 +11,7 @@ from moleculekit.molecule import Molecule
 from moleculekit.tools.voxeldescriptors import getVoxelDescriptors
 
 from preprocess import FAIL_FLAG
+from utils import FP_SIZE
 
 
 class Featurizer(Dataset):
@@ -98,10 +99,9 @@ def get_protein_features(usercoords, usercenters, userchannels, rotate_over=None
 
 def get_ligand_features(mol):
     """
-    Featurizes ligand using a Morgan fingerprint and other descriptors
+    Featurizes ligand using a Morgan fingerprint and other descriptors.
     """
-    fp = AllChem.GetMorganFingerprintAsBitVect(
-        mol, 2, nBits=1024, useChirality=True)
+    fp = AllChem.GetMorganFingerprintAsBitVect(mol, 2, nBits=FP_SIZE, useChirality=True)
     arr = np.zeros((1,), dtype=np.float32)
     DataStructs.ConvertToNumpyArray(fp, arr)
     desc = get_rdkit_descriptors(mol)
@@ -109,15 +109,17 @@ def get_ligand_features(mol):
 
 
 def get_rdkit_descriptors(mol):
+    """
+    Computes all available two-dimensional rdkit descriptors.
+    """
     desc_dict = dict(Descriptors.descList)
-    descs = list(desc_dict.keys())
-    descs.remove('Ipc')
     ans = {}
-    for descname in descs:
-        desc = desc_dict[descname]
-        bin_value = desc(mol)
-        bin_name = 'DESC_{}'.format(descname)
-        ans[bin_name] = bin_value
+    for descname, fun in desc_dict.items():
+        if descname == 'Ipc':
+            val = fun(mol, avg=1)
+        else:
+            val = fun(mol)
+        ans[descname] = val
     return np.array(list(ans.values()), dtype=np.float32)
 
 
