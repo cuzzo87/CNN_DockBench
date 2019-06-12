@@ -4,7 +4,7 @@ import numpy as np
 import torch
 from torch import nn
 from rdkit import Chem, DataStructs
-from rdkit.Chem import AllChem, SDMolSupplier, Descriptors, Descriptors3D
+from rdkit.Chem import AllChem, SDMolSupplier, Descriptors
 from torch.utils.data import Dataset
 
 from moleculekit.molecule import Molecule
@@ -119,7 +119,6 @@ def get_rdkit_descriptors(mol):
         bin_name = 'DESC_{}'.format(descname)
         ans[bin_name] = bin_value
     return np.array(list(ans.values()), dtype=np.float32)
-
 
 
 

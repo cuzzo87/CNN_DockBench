@@ -23,6 +23,7 @@ class TwoLegs(nn.Module):
         self.conv_voxel5 = nn.Conv3d(64, 64, kernel_size=3)
 
         self.linear_cat1 = nn.Linear(1024, 128)
+        self.bn1 = nn.BatchNorm1d(128)
         self.linear_out1 = nn.Linear(128, 17)
         self.linear_out2 = nn.Linear(128, 17)
         self.linear_out3 = nn.Linear(128, 17)
@@ -42,10 +43,11 @@ class TwoLegs(nn.Module):
         return x.view(x.shape[0], -1)
 
     def forward(self, voxel, fp):
-        voxel_out = self._pocket_forward(voxel)
-        fp_out = self._ligand_forward(fp)
-        x = torch.cat([voxel_out, fp_out], dim=1)
+        protein_out = self._pocket_forward(voxel)
+        ligand_out = self._ligand_forward(fp)
+        x = torch.cat([protein_out, ligand_out], dim=1)
         x = self.linear_cat1(x)
+        x = self.bn1(x)
         out1 = F.relu(self.linear_out1(x))
         out2 = F.relu(self.linear_out2(x))
         out3 = F.relu(self.linear_out3(x))
