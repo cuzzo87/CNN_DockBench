@@ -13,6 +13,8 @@ from utils import home
 RES_DIR = os.path.join(home(), 'results')
 
 
+# TODO: Ligand performance results.
+
 class MeanError:
     """
     Convenient class for handling micro and macro
