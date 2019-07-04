@@ -12,8 +12,7 @@ from utils import home
 
 RES_DIR = os.path.join(home(), 'results')
 
-
-# TODO: Ligand performance results.
+# Protocol evaluation metrics
 
 class MeanError:
     """
@@ -152,11 +151,29 @@ def average_results(results_dict):
     return avg_results
 
 
+# Ligand evaluation metrics
+
+def ligand_eval(rmsd_test, rmsd_pred, mask):
+    corrs = []
+    rhos = []
+    for sample in range(rmsd_test.shape[0]):
+        r_t, r_p = (rmsd_test[sample, :])[mask[sample, :].astype(np.bool)], \
+                   (rmsd_pred[sample, :])[mask[sample, :].astype(np.bool)]
+        corrs.append(corr(r_t, r_p))
+        rhos.append(spearmanr(r_t, r_p, nan_policy='raise').correlation)
+    return corrs, rhos
+
+
+
 if __name__ == '__main__':
     results = {}
+    ligand_results = {}
     np.seterr(all='ignore')
 
     for mode in EVAL_MODES:
+        results.setdefault(mode, {})
+        ligand_results.setdefault(mode, {})
+
         for split_no in range(N_SPLITS):
             resolution = np.load(os.path.join(RES_DIR, 'resolution_{}_{}.npy'.format(mode, split_no)))
             mask = np.load(os.path.join(RES_DIR, 'mask_{}_{}.npy'.format(mode, split_no))).astype(np.bool)
@@ -180,8 +197,6 @@ if __name__ == '__main__':
             rmses_ave, corrs_ave = regression_metrics(rmsd_ave_test, rmsd_ave_pred, mask)
             mae_micros, mae_macros, rmse_micros, rmse_macros, rhos, taus, kappas_lin, kappas_quad = ordinal_metrics(score_test, score_pred, mask)
 
-            results.setdefault(mode, {})
-
             for i, protocol in enumerate(PROTOCOLS):
                 results[mode].setdefault(protocol, {})
                 results[mode][protocol].setdefault('rmse_min', []).append(rmses_min[i])
@@ -196,6 +211,14 @@ if __name__ == '__main__':
                 results[mode][protocol].setdefault('tau_ave', []).append(taus[i])
                 results[mode][protocol].setdefault('kappa_lin', []).append(kappas_lin[i])
                 results[mode][protocol].setdefault('kappa_quad', []).append(kappas_quad[i])
+            
+            l_corrs_min, l_rhos_min = ligand_eval(rmsd_min_test, rmsd_min_pred, mask)
+            l_corrs_ave, l_rhos_ave = ligand_eval(rmsd_ave_test, rmsd_ave_pred, mask)
+            ligand_results[mode].setdefault('corr_min', []).append(np.nanmean(l_corrs_min))
+            ligand_results[mode].setdefault('rho_min', []).append(np.nanmean(l_rhos_min))
+            ligand_results[mode].setdefault('corr_ave', []).append(np.nanmean(l_corrs_ave))
+            ligand_results[mode].setdefault('rho_ave', []).append(np.nanmean(l_rhos_ave))
+
 
     with open(os.path.join(RES_DIR, 'results.pkl'), 'wb') as handle:
         pickle.dump(results, handle)
