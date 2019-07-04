@@ -17,8 +17,9 @@ DATA_PATH = os.path.join(home(), 'cases')
 OUTDIR = os.path.join(home(), 'data')
 REGEX_PATTERN = r'\w*\-\w*_min\-\w*-\w*'
 PROTOCOLS = ['autodock-ga', 'autodock-lga', 'autodock-ls', 'glide-sp', 'gold-asp', 'gold-chemscore',
-             'gold-goldscore', 'gold-plp', 'moe-AffinitydG', 'moe-GBVIWSA', 'moe-LondondG',
-             'plants-chemplp', 'plants-plp95', 'plants-plp', 'rdock-solv', 'rdock-std', 'vina-std']
+             'gold-goldscore', 'gold-plp', 'plants-chemplp', 'plants-plp95', 'plants-plp', 'rdock-solv',
+             'rdock-std', 'vina-std']
+SKIP_PROTOCOLS = ['moe-AffinitydG', 'moe-GBVIWSA', 'moe-LondondG']
 SKIP_IDS = ['1r9l', '1px4', '2f2h', '3i3b', '3mv0', '3t09', '3t0d', '3t2q', '3vdb', '3f37', '3k1j', '3f34', '3dyo',
             '3muz', '3t08', '3t0b', '3vd4', '3vd9', '3f33']
 N_PROTOCOLS = len(PROTOCOLS)
@@ -51,6 +52,9 @@ def build_guide(path):
                     resname = match[0]
                     pdbid = match[1].split('_')[0]
                     protocol = match[2] + '-' + match[3]
+
+                    if protocol in SKIP_PROTOCOLS:
+                        continue
 
                     if 'RESOLUTION' not in lines[i + 5]:
                         not_provided_cases.append(os.path.basename(
