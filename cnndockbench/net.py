@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from preprocess import N_PROTOCOLS
 
 class TwoLegs(nn.Module):
     def __init__(self, desc_size=1207, channels=8):
@@ -24,9 +25,9 @@ class TwoLegs(nn.Module):
 
         self.linear_cat1 = nn.Linear(1024, 128)
         self.bn1 = nn.BatchNorm1d(128)
-        self.linear_out1 = nn.Linear(128, 17)
-        self.linear_out2 = nn.Linear(128, 17)
-        self.linear_out3 = nn.Linear(128, 17)
+        self.linear_out1 = nn.Linear(128, N_PROTOCOLS)
+        self.linear_out2 = nn.Linear(128, N_PROTOCOLS)
+        self.linear_out3 = nn.Linear(128, N_PROTOCOLS)
 
     def _ligand_forward(self, fp):
         x = F.relu(self.linear_fp1(fp))
