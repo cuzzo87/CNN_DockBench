@@ -154,6 +154,10 @@ def average_results(results_dict):
 # Ligand evaluation metrics
 
 def ligand_eval(rmsd_test, rmsd_pred, mask):
+    """
+    Computes Pearson's and Spearman's correlation for "horizontal"
+    ligand evaluation. (i.e. given a ligand, which protocol works best?)
+    """
     corrs = []
     rhos = []
     for sample in range(rmsd_test.shape[0]):
@@ -227,3 +231,6 @@ if __name__ == '__main__':
 
     with open(os.path.join(RES_DIR, 'avg_results.pkl'), 'wb') as handle:
         pickle.dump(avg_results, handle)
+
+    with open(os.path.join(RES_DIR, 'ligand_results.pkl'), 'wb') as handle:
+        pickle.dump(ligand_results, handle)
