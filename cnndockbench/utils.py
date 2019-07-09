@@ -66,6 +66,16 @@ def get_data(path):
             resolution.append(os.path.join(subfolder, 'resolution.npy'))
     return coords, grid_centers, channels, centers, ligands, rmsd_min, rmsd_ave, n_rmsd, resolution
 
+def getClassPDBids(classesList):
+
+    dict_idx_pdbids = {}
+    for n in range(len(classesList)):
+        f = open(classesList[n], 'r')
+        lines = [entry.strip() for entry in f.readlines()]
+        f.close()
+        dict_idx_pdbids[n] = lines
+
+    return dict_idx_pdbids
 
 class Splitter:
     def __init__(self, coords, grid_centers, channels, centers, ligands, rmsd_min, rmsd_ave, n_rmsd, resolution,
@@ -86,6 +96,9 @@ class Splitter:
         self.random_state = random_state
         self.n_samples = len(self.grid_centers)
 
+        self.classesList = glob(os.path.join(home(), 'proteinClasses', '*.list'))
+        self.dictIdxPdbids = getClassPDBids(self.classesList)
+
         assert len(self.coords) == len(self.channels) == len(self.ligands) == len(self.centers) == \
             len(self.rmsd_min) == len(self.rmsd_ave) == len(self.resolution)
 
@@ -94,6 +107,13 @@ class Splitter:
 
         elif method == 'ligand_scaffold':
             self._ligand_scaffold_split()
+
+        elif method == 'protein_classes':
+            self._protein_classes_split()
+
+        elif method == 'protein_classes_distribution':
+            self._protein_classes_distribution()
+
         else:
             raise ValueError('Splitting procedure not recognised. Available ones: {}'.format(self._available_methods()))
 
@@ -104,6 +124,64 @@ class Splitter:
         all_indices = np.arange(0, self.n_samples)
         kf = KFold(n_splits=self.n_splits, shuffle=True, random_state=self.random_state)
         self.splits = list(kf.split(all_indices))
+
+    def _protein_classes_split(self):
+        """
+        Protein classes split based on PFAM classification
+        """
+        all_indices = np.arange(0, len(self.classesList))
+        kf = KFold(n_splits=self.n_splits, shuffle=True, random_state=self.random_state)
+
+        splits = []
+        references = [os.path.dirname(l).split('/')[-1].upper() for l in self.ligands]
+
+        for s in range(self.n_splits):
+            trains = [self.dictIdxPdbids[i] for i in list(kf.split(all_indices))[s][0]]
+            trains = np.concatenate(trains)
+            tests = [self.dictIdxPdbids[i] for i in list(kf.split(all_indices))[s][1]]
+            tests = np.concatenate(tests)
+            trains_ref = []
+            tests_ref = []
+            for t in trains:
+                if t in references:
+                    trains_ref.append(references.index(t))
+            for t in tests:
+                if t in references:
+                    tests_ref.append(references.index(t))
+            trains_ref = np.unique(trains_ref)
+            tests_ref = np.unique(tests_ref)
+            splits.append([trains_ref, tests_ref])
+        self.splits = splits
+
+    def _protein_classes_distribution(self):
+        splits = []
+        references = [os.path.dirname(l).split('/')[-1].upper() for l in self.ligands]
+        seeds = np.arange(self.random_state, self.random_state + 5)
+
+        for s in range(self.n_splits):
+            trainsWell = []
+            testsWell = []
+            for k, pdbids in self.dictIdxPdbids.items():
+                n_pdbids = len(pdbids)
+                if int(n_pdbids / self.n_splits) == 0:
+                    for p in pdbids:
+                        if p in references:
+                            trainsWell.append(references.index(p))
+                    continue
+                np.random.seed(seeds[s])
+                tmp_test = np.random.choice(pdbids, int(n_pdbids / self.n_splits))
+                tmp_train = [p for p in pdbids if p not in tmp_test]
+
+                for t in tmp_train:
+                    if t in references:
+                        trainsWell.append(references.index(t))
+                for t in tmp_test:
+                    if t in references:
+                        testsWell.append(references.index(t))
+            splits.append([np.unique(trainsWell), np.unique(testsWell)])
+
+
+        self.splits = splits
 
     def _ligand_scaffold_split(self):
         """
@@ -137,4 +215,4 @@ class Splitter:
                 self.n_rmsd[test_idx])
 
     def _available_methods(self):
-        return ['random', 'ligand_scaffold']
+        return ['random', 'ligand_scaffold', 'protein_classes', 'protein_classes_distribution']

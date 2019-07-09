@@ -22,7 +22,7 @@ RES_PATH = os.path.join(home(), 'results')
 N_EPOCHS = 200
 N_SPLITS = 5
 BATCH_SIZE = 32
-EVAL_MODES = ['random', 'ligand_scaffold']
+EVAL_MODES = ['random', 'ligand_scaffold', 'protein_classes', 'protein_classes_distribution']
 
 
 def training_loop(loader, model, loss_cl, opt):
