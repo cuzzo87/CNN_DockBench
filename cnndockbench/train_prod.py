@@ -14,13 +14,14 @@ from utils import get_data, home
 MODEL_PATH = os.path.join(home(), 'models')
 
 if __name__ == '__main__':
-    data = get_data(DATA_PATH)
+    data = list(get_data(DATA_PATH))
+    data.pop(-1)
     feat = Featurizer(*data)
     loader = DataLoader(feat,
                         batch_size=BATCH_SIZE,
                         num_workers=NUM_WORKERS,
                         shuffle=True)
-    model = TwoLegs.to(DEVICE)
+    model = TwoLegs().to(DEVICE)
     loss_cl = CombinedLoss()
     opt = Adam(model.parameters())
     scheduler = ExponentialLR(opt, gamma=0.95)

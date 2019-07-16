@@ -94,7 +94,7 @@ def eval_loop(loader, model):
 
 if __name__ == '__main__':
     data = get_data(DATA_PATH)
-    for mode in EVAL_MODES[2:]:
+    for mode in EVAL_MODES:
         sp = Splitter(*data, n_splits=N_SPLITS, method=mode)
         for split_no in range(N_SPLITS):
             print('Now evaluating split {}/{} with strategy {}'.format(split_no + 1, N_SPLITS, mode))

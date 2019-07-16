@@ -67,14 +67,12 @@ def get_data(path):
     return coords, grid_centers, channels, centers, ligands, rmsd_min, rmsd_ave, n_rmsd, resolution
 
 def getClassPDBids(classesList):
-
     dict_idx_pdbids = {}
     for n in range(len(classesList)):
         f = open(classesList[n], 'r')
         lines = [entry.strip() for entry in f.readlines()]
         f.close()
         dict_idx_pdbids[n] = lines
-
     return dict_idx_pdbids
 
 class Splitter:

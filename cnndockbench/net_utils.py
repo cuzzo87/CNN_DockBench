@@ -4,13 +4,13 @@ import numpy as np
 import torch
 from torch import nn
 from rdkit import Chem, DataStructs
-from rdkit.Chem import AllChem, SDMolSupplier, Descriptors
+from rdkit.Chem import AllChem, SDMolSupplier, MolFromSmiles, Descriptors
 from torch.utils.data import Dataset
 
 from moleculekit.molecule import Molecule
 from moleculekit.tools.voxeldescriptors import getVoxelDescriptors
 
-from preprocess import FAIL_FLAG
+from preprocess import FAIL_FLAG, BOXSIZE
 from utils import FP_SIZE
 
 
@@ -73,7 +73,7 @@ class CombinedLoss(nn.Module):
         return loss_rmsd_min, loss_rmsd_ave, loss_n_rmsd
 
 
-def get_protein_features(usercoords, usercenters, userchannels, rotate_over=None, boxsize=[24]*3):
+def get_protein_features(usercoords, usercenters, userchannels, rotate_over=None, boxsize=[BOXSIZE]*3):
     """
     Featurizes protein pocket using 3D voxelization
     """
