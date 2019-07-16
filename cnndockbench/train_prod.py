@@ -6,10 +6,10 @@ from torch.optim.lr_scheduler import ExponentialLR
 from torch.utils.data import DataLoader
 
 from net import TwoLegs
-from net_utils import Featurizer, CombinedLoss
-from train import EVAL_MODES, DEVICE, NUM_WORKERS, DATA_PATH, N_EPOCHS, BATCH_SIZE, \
-                  training_loop
-from utils import home, get_data
+from net_utils import CombinedLoss, Featurizer
+from train import (BATCH_SIZE, DATA_PATH, DEVICE, EVAL_MODES, N_EPOCHS,
+                   NUM_WORKERS, training_loop)
+from utils import get_data, home
 
 MODEL_PATH = os.path.join(home(), 'models')
 
