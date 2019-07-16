@@ -1,11 +1,13 @@
 import os
 
 import numpy as np
+import torch
 from rdkit.Chem import MolFromSmiles
 from torch.utils.data import Dataset
 from tqdm import tqdm
 
 from net_utils import get_ligand_features, get_protein_features
+from train import DEVICE
 
 
 class FeaturizerProd(Dataset):
