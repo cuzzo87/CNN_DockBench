@@ -53,7 +53,7 @@ def get_data(path):
     n_rmsd = []
     resolution = []
 
-    for subfolder in glob(os.path.join(path, '*/')):
+    for subfolder in sorted(glob(os.path.join(path, '*/'))):
         if check_required_files(subfolder, REQUIRED_FILES):
             coords.append(os.path.join(subfolder, 'coords.npy'))
             grid_centers.append(os.path.join(subfolder, 'grid_centers.npy'))
@@ -159,7 +159,7 @@ class Splitter:
         for s in range(self.n_splits):
             trainsWell = []
             testsWell = []
-            for k, pdbids in self.dictIdxPdbids.items():
+            for _, pdbids in self.dictIdxPdbids.items():
                 n_pdbids = len(pdbids)
                 if int(n_pdbids / self.n_splits) == 0:
                     for p in pdbids:
