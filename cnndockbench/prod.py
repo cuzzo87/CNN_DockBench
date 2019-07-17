@@ -80,3 +80,9 @@ class DockNet:
         if self.ftype == 'sdf' and self.center is all([isinstance(x, float) for x in self.center]):
             self.compute_center = False
             self.center = np.array(self.center, dtype=np.float32)
+
+
+if __name__ == '__main__':
+    pdb = '/shared/jose/janssen/pde2_glide/protein.pdb'
+    ligands = '/shared/jose/janssen/pde2_glide/pde2_clean.sdf'
+    dn = DockNet(pdb, ligands)
