@@ -16,8 +16,7 @@ class FeaturizerProd(Dataset):
         self.grid_centers = grid_centers
         self.channels = channels
         self.mols = mols
-        if isinstance(self.mols, list):
-            self.mols = iter(self.mols)
+
         
         self.desc_cols = np.load(os.path.join(os.path.dirname(__file__), 'data', 'desc_cols.npy'))
         self.avg_feat = np.load(os.path.join(os.path.dirname(__file__), 'data', 'avg.npy'))
@@ -29,14 +28,15 @@ class FeaturizerProd(Dataset):
         self.prot_feat = np.transpose(self.prot_feat.reshape((24, 24, 24, 8)),
                                       axes=(3, 0, 1, 2)).astype(np.float32)
 
-    def __getitem__(self, _):
-        mol = next(self.mols)
-        if isinstance(mol, str):
-            mol = MolFromSmiles(mol)
+    def __getitem__(self, index):
+        mol = MolFromSmiles(self.mols[index])
         fp, desc = get_ligand_features(mol)
         std_desc = (desc[self.desc_cols] - self.avg_feat) / self.std_feat
         lig_feat = np.concatenate((fp, std_desc))
         return self.prot_feat, lig_feat
+
+    def __len__(self):
+        return len(self.mols)
 
 
 def prod_loop(loader, model):
