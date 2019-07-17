@@ -11,6 +11,11 @@ from train import DEVICE
 
 
 class FeaturizerProd(Dataset):
+    """
+    Similar to the featurizer in `utils.py`, but without returning
+    target values. It also only considers a single protein pocket
+    and reuses its featurization.
+    """
     def __init__(self, coords, grid_centers, channels, mols):
         self.coords = coords
         self.grid_centers = grid_centers
@@ -29,6 +34,7 @@ class FeaturizerProd(Dataset):
                                       axes=(3, 0, 1, 2)).astype(np.float32)
 
     def __getitem__(self, index):
+        # TODO: augmentation
         mol = MolFromSmiles(self.mols[index])
         fp, desc = get_ligand_features(mol)
         std_desc = (desc[self.desc_cols] - self.avg_feat) / self.std_feat
@@ -40,6 +46,9 @@ class FeaturizerProd(Dataset):
 
 
 def prod_loop(loader, model):
+    """
+    Evaluation loop for production.
+    """
     model = model.eval()
     progress = tqdm(loader)
 

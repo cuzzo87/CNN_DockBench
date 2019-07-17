@@ -36,6 +36,10 @@ class DockNet:
         self.process_protein()
 
     def process_protein(self):
+        """
+        Prepares input protein for atomtyping and creates necessary
+        files for voxelization.
+        """
         protein = Molecule(self.pdb)
         protein.filter('protein')
         protein = prepareProteinForAtomtyping(protein, verbose=False)
@@ -45,6 +49,10 @@ class DockNet:
         self.channels, _ = getChannels(protein)
 
     def process_ligands(self):
+        """
+        Processes input ligands and removes those that cannot be
+        read by rdkit.
+        """
         with open(self.ligands, 'r+') as handle:
             self.ligands = handle.readlines()
         self.mols = [sm.strip('\n') for sm in self.ligands]
@@ -55,6 +63,9 @@ class DockNet:
         self.mols = [m for m in self.mols if MolFromSmiles(m) is not None]
 
     def run_net(self):
+        """
+        Creates featurizer objects and outputs network predictions.
+        """
         LOGGER.info('Now predicting...')
         featurizer = FeaturizerProd(self.coords, self.grid_centers, self.channels, self.mols)
         loader = DataLoader(featurizer,
@@ -66,12 +77,18 @@ class DockNet:
         return self.prettify_res(rmsd_min, rmsd_ave, n_rmsd)
 
     def prettify_res(self, rmsd_min, rmsd_ave, n_rmsd):
+        """
+        Prettifies network results for easier human readability.
+        """
         rmsd_min_df = pd.DataFrame(rmsd_min.numpy(), columns=PROTOCOLS, index=self.mols)
         rmsd_ave_df = pd.DataFrame(rmsd_ave.numpy(), columns=PROTOCOLS, index=self.mols)
         n_rmsd_df = pd.DataFrame(n_rmsd.numpy(), columns=PROTOCOLS, index=self.mols)
         return rmsd_min_df, rmsd_ave_df, n_rmsd_df
 
     def sanity_checks(self):
+        """
+        Simple sanity checks for input and types.
+        """
         if not self.ligands.endswith('.smi'):
             raise ValueError('Ligand filetype needs to be .smi')
         if not all([isinstance(c, float) for c in self.center]):
