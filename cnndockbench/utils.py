@@ -152,6 +152,9 @@ class Splitter:
         self.splits = splits
 
     def _protein_classes_distribution(self):
+        """
+        Balanced 1/5 ratio test/train PFAM classification split.
+        """
         splits = []
         references = [os.path.dirname(l).split('/')[-1].upper() for l in self.ligands]
         seeds = np.arange(self.random_state, self.random_state + 5)
@@ -204,6 +207,9 @@ class Splitter:
             self.splits.append((indices_train, indices_test))
 
     def get_split(self, split_no):
+        """
+        Gets `split_no` train/test split .
+        """
         train_idx, test_idx = self.splits[split_no] 
         return (self.coords[train_idx], self.grid_centers[train_idx], self.channels[train_idx],
                 self.centers[train_idx], self.ligands[train_idx], self.rmsd_min[train_idx],

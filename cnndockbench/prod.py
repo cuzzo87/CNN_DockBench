@@ -23,6 +23,9 @@ warnings.filterwarnings('ignore')
 
 class DockNet:
     def __init__(self, pdb, ligands, x, y, z):
+        """
+        Base production class.
+        """
         self.pdb = pdb
         self.ligands = ligands
         self.center = (x, y, z)
