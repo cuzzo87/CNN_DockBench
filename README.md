@@ -1,4 +1,4 @@
-# CNN_DockBench
+# cnndockbench
 
 ### Conda environment
 
