@@ -1,3 +1,4 @@
+import multiprocessing
 import os
 import logging, warnings
 
@@ -73,7 +74,7 @@ class DockNet:
         featurizer = FeaturizerProd(self.coords, self.grid_centers, self.channels, self.mols)
         loader = DataLoader(featurizer,
                             batch_size=BATCH_SIZE,
-                            num_workers=1,
+                            num_workers=NUM_WORKERS,
                             shuffle=False)
         model = torch.load(os.path.join(home(), 'models', 'production.pt')).to(DEVICE)
         rmsd_min, rmsd_ave, n_rmsd = prod_loop(loader, model)
@@ -81,7 +82,7 @@ class DockNet:
 
     def prettify_res(self, rmsd_min, rmsd_ave, n_rmsd):
         """
-        Prettifies network results for easier human readability.
+        Converts results to pandas dataframes for easier readability.
         """
         rmsd_min_df = pd.DataFrame(rmsd_min.numpy(), columns=PROTOCOLS, index=self.mols)
         rmsd_ave_df = pd.DataFrame(rmsd_ave.numpy(), columns=PROTOCOLS, index=self.mols)
