@@ -36,6 +36,7 @@ def check_required_files(path, required_files):
     for req_file in required_files:
         if req_file not in available_files:
             all_available = False
+            break
     return all_available
 
 
