@@ -75,7 +75,7 @@ class DockNet:
                             batch_size=BATCH_SIZE,
                             num_workers=NUM_WORKERS,
                             shuffle=False)
-        model = torch.load(os.path.join(home(), 'models', 'production.pt')).to(DEVICE)
+        model = torch.load(os.path.join(home(), 'models', 'production.pt'), map_location=DEVICE)
         rmsd_min, rmsd_ave, n_rmsd = prod_loop(loader, model)
         return self.prettify_res(rmsd_min, rmsd_ave, n_rmsd)
 
