@@ -8,6 +8,15 @@ Execute to replicate package environment
 conda env create -f conda_env.yml
 ```
 
+
+Download and uncompress:
+
+```bash
+cd CNN_DockBench/cnndockbench
+wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1bUz4ZIzwNZgU67gsgOYlb4v1l2CrN5zk' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1bUz4ZIzwNZgU67gsgOYlb4v1l2CrN5zk" -O data.tar.gz && rm -rf /tmp/cookies.txt
+tar -xf data.tar.gz
+```
+
 ### Run model
 
 The model implementation provided here requires:
@@ -28,14 +37,6 @@ The script will generate three files: `rmsd_min.csv`, `rmsd_ave.csv` and `n_rmsd
 ### Replication of the results
 
 The entire code for replicating the results reported in the paper is found in this repository. You can also precompute some data for faster replication of the results. 
-
-Download and uncompress:
-
-```bash
-cd CNN_DockBench/cnndockbench
-wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1bUz4ZIzwNZgU67gsgOYlb4v1l2CrN5zk' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1bUz4ZIzwNZgU67gsgOYlb4v1l2CrN5zk" -O data.tar.gz && rm -rf /tmp/cookies.txt
-tar -xf data.tar.gz
-```
 
 - Step 1 (optional): Run `python precompute.py` and `python net_utils.py`, if you have not downloaded and uncompressed `data.tar.gz` as per instructed.
 - Step 2: Run `train.py`. Results will be stored in the `results` folder for each split type.
