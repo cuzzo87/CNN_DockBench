@@ -137,7 +137,7 @@ def ordinal_metrics(score_test, score_pred, mask):
     return mae_micros, mae_macros, rmse_micros, rmse_macros, rhos, taus, kappas_lin, kappas_quad
 
 
-def average_results(results_dict):
+def aggregate_results(results_dict, fun):
     """
     Computes average results over splits.
     """
@@ -147,7 +147,7 @@ def average_results(results_dict):
         for protocol in results_dict[mode].keys():
             avg_results[mode].setdefault(protocol, {})
             for metric, values in results_dict[mode][protocol].items():
-                avg_results[mode][protocol][metric] = np.mean(values)
+                avg_results[mode][protocol][metric] = fun(values)
     return avg_results
 
 
@@ -227,10 +227,14 @@ if __name__ == '__main__':
     with open(os.path.join(RES_DIR, 'results.pkl'), 'wb') as handle:
         pickle.dump(results, handle)
 
-    avg_results = average_results(results)
+    avg_results = aggregate_results(results, np.nanmean)
+    std_results = aggregate_results(results, np.nanstd)
 
     with open(os.path.join(RES_DIR, 'avg_results.pkl'), 'wb') as handle:
         pickle.dump(avg_results, handle)
+
+    with open(os.path.join(RES_DIR, 'std_results.pkl'), 'wb') as handle:
+        pickle.dump(std_results, handle)
 
     with open(os.path.join(RES_DIR, 'ligand_results.pkl'), 'wb') as handle:
         pickle.dump(ligand_results, handle)
