@@ -1,5 +1,6 @@
 import multiprocessing
 import os
+import pickle
 
 import numpy as np
 import torch
@@ -10,8 +11,7 @@ from tqdm import tqdm
 
 from net import TwoLegs
 from net_utils import CombinedLoss, Featurizer
-from utils import home, Splitter, get_data
-
+from utils import Splitter, get_data, home
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 NUM_WORKERS = int(multiprocessing.cpu_count() / 2)
@@ -94,11 +94,16 @@ def eval_loop(loader, model):
 
 if __name__ == '__main__':
     data = get_data(DATA_PATH)
+    split_pdbids = {}
+
     for mode in EVAL_MODES:
+        split_pdbids.setdefault(mode, [])
         sp = Splitter(*data, n_splits=N_SPLITS, method=mode)
         for split_no in range(N_SPLITS):
             print('Now evaluating split {}/{} with strategy {}'.format(split_no + 1, N_SPLITS, mode))
             train_data, test_data = sp.get_split(split_no=split_no)
+            pdbids = [os.path.basename(os.path.dirname(t)) for t in test_data[0]]
+            split_pdbids[mode].append(pdbids)
 
             feat_train = Featurizer(*train_data)
             feat_test = Featurizer(*test_data)
@@ -140,3 +145,7 @@ if __name__ == '__main__':
             np.save(os.path.join(RES_PATH, 'n_rmsd_pred_{}_{}.npy'.format(mode, split_no)), arr=n_rmsd_pred.numpy())
             np.save(os.path.join(RES_PATH, 'mask_{}_{}.npy'.format(mode, split_no)), arr=mask.numpy())
             np.save(os.path.join(RES_PATH, 'resolution_{}_{}.npy'.format(mode, split_no)), arr=test_resolution)
+
+
+    with open(os.path.join(RES_PATH, 'split_pdbids.pt'), 'wb') as handle:
+        pickle.dump(split_pdbids, handle)

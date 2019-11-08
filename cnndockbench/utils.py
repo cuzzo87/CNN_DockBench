@@ -67,6 +67,7 @@ def get_data(path):
             resolution.append(os.path.join(subfolder, 'resolution.npy'))
     return coords, grid_centers, channels, centers, ligands, rmsd_min, rmsd_ave, n_rmsd, resolution
 
+
 def getClassPDBids(classesList):
     dict_idx_pdbids = {}
     for n in range(len(classesList)):
@@ -75,6 +76,7 @@ def getClassPDBids(classesList):
         f.close()
         dict_idx_pdbids[n] = lines
     return dict_idx_pdbids
+
 
 class Splitter:
     def __init__(self, coords, grid_centers, channels, centers, ligands, rmsd_min, rmsd_ave, n_rmsd, resolution,
