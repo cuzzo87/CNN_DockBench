@@ -8,8 +8,9 @@ from train import EVAL_MODES, N_SPLITS
 from utils import home
 
 from matplotlib import rc
-rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
+rc('font',**{'family':'sans-serif', 'sans-serif':['Helvetica'], 'size': 6})
 rc('text', usetex=True)
+
 
 
 RES_DIR = os.path.join(home(), 'results')
@@ -49,7 +50,8 @@ if __name__ == "__main__":
             ligand_true[mode].extend(r_ts)
             ligand_pred[mode].extend(r_ps)
 
-    f, ax = plt.subplots(nrows=2, ncols=2, figsize=(8, 8))
+    f, ax = plt.subplots(nrows=2, ncols=2, dpi=400, sharex=True,
+                         sharey=True)
     idx = 0
 
     for row in range(2):
@@ -59,11 +61,13 @@ if __name__ == "__main__":
             lp = ligand_pred[mode]
             ax[row, col].set_axisbelow(True)
             ax[row, col].grid()
-            ax[row, col].scatter(lt, lp, s=0.2, c='slategrey')
+            ax[row, col].scatter(lt, lp, s=0.05, c='slategrey')
             ax[row, col].set_xlim(0, 25)
             ax[row, col].set_ylim(0, 25)
             ax[row, col].set_title(NAMES_EVAL_MODES[mode])
-
+            x0, x1 = ax[row, col].get_xlim()
+            y0, y1 = ax[row, col].get_ylim()
+            ax[row, col].set_aspect(abs(x1 - x0) / abs(y1 - y0))
             idx += 1
 
     f.text(0.5, 0.04, r'Experimental $\mathrm{RMSD}_{\mathrm{ave}}$', ha='center')
