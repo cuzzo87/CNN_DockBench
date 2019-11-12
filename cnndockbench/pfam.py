@@ -32,6 +32,18 @@ def build_pfam_map(pfam_files):
     return pdbid_pfam_map
 
 
+def pfam_population(pdbid_pfam_map, split_pdbids):
+    pdbids = [pdbid for sublist in split_pdbids['random'] for pdbid in sublist]
+    families = [pdbid_pfam_map[pdbid] if pdbid in pdbid_pfam_map else None for pdbid in pdbids]
+
+    population_family = {}
+
+    for family in families:
+        population_family.setdefault(family, 0)
+        population_family[family] += 1
+    return population_family
+
+
 if __name__ == "__main__":
     pdbid_pfam_map = build_pfam_map(PFAM_FILES)
 
@@ -43,8 +55,8 @@ if __name__ == "__main__":
     for mode in EVAL_MODES:
         results_family.setdefault(mode, {})
         for split_no in range(N_SPLITS):
-            pdbids = results_family[mode][split_no]
-            families = [pdbid_pfam_map[pdbid] for pdbid in pdbids]
+            pdbids = split_pdbids[mode][split_no]
+            families = [pdbid_pfam_map[pdbid] if pdbid in pdbid_pfam_map else None for pdbid in pdbids]
             mask = np.load(os.path.join(RES_PATH, 'mask_{}_{}.npy'.format(mode, split_no))).astype(np.bool)
             rmsd_ave_test = np.load(os.path.join(RES_PATH, 'rmsd_ave_test_{}_{}.npy'.format(mode, split_no)))
             rmsd_ave_pred = np.load(os.path.join(RES_PATH, 'rmsd_ave_pred_{}_{}.npy'.format(mode, split_no)))
@@ -53,3 +65,26 @@ if __name__ == "__main__":
             for family, corr in zip(families, corrs):
                 results_family[mode].setdefault(family, [])
                 results_family[mode][family].append(corr)
+
+    # Average results
+    avg_family = {}
+    std_family = {}
+
+    for mode in EVAL_MODES:
+        avg_family.setdefault(mode, {})
+        std_family.setdefault(mode, {})
+        for family, res in results_family[mode].items():
+            avg_family[mode][family] = np.mean(res)
+            std_family[mode][family] = np.std(res) 
+
+    with open(os.path.join(RES_PATH, 'avg_family.pt'), 'wb') as handle:
+        pickle.dump(avg_family, handle)
+
+    with open(os.path.join(RES_PATH, 'std_family.pt'), 'wb') as handle:
+        pickle.dump(std_family, handle)
+
+    # Family population
+    population_family = pfam_population(pdbid_pfam_map, split_pdbids)
+
+    with open(os.path.join(RES_PATH, 'pfam_population.pt'), 'wb') as handle:
+        pickle.dump(population_family, handle)

@@ -52,7 +52,10 @@ def corr(y, ypred):
     """
     Pearson corr. coef. wrapper
     """
-    return np.corrcoef((y, ypred))[0, 1]
+    c = np.corrcoef((y, ypred))[0, 1]
+    if np.isnan(c):
+        c = 1.0   # Case where y = ypred
+    return c
 
 
 def compute_score(rmsd_ave, n_rmsd, resolution, n_complex):
