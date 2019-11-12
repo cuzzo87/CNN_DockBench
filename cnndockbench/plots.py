@@ -4,7 +4,7 @@ import pickle
 import numpy as np
 import matplotlib
 
-matplotlib.use('Agg')
+# matplotlib.use('Agg')
 
 import matplotlib.pyplot as plt
 from train import EVAL_MODES, N_SPLITS
@@ -91,7 +91,7 @@ def family_plot(num_families=30):
         population_family = pickle.load(handle)
 
     population_family.pop(None)
-    sorted_population = sorted(population_family.items(), key=lambda kv: kv[1], reverse=True)
+    sorted_population = sorted(population_family.items(), key=lambda kv: kv[1], reverse=False)
     selected_families = [t[0] for t in sorted_population[:num_families]]
 
     f, ax = plt.subplots(nrows=2, ncols=2, sharey=True, figsize=(12, 8))
@@ -100,8 +100,8 @@ def family_plot(num_families=30):
     for row in range(2):
         for col in range(2):
             mode = EVAL_MODES[idx]
-            avg_top = [avg_family[mode][fam] for fam in selected_families]
-            std_top = [std_family[mode][fam] for fam in selected_families]
+            avg_top = [avg_family[mode][fam] for fam in selected_families if fam in avg_family[mode]]
+            std_top = [std_family[mode][fam] for fam in selected_families if fam in std_family[mode]]
             x = np.arange(len(avg_top))
 
             ax[row, col].bar(x, avg_top, yerr=std_top, color='slategrey')
@@ -115,7 +115,8 @@ def family_plot(num_families=30):
     plt.tight_layout()
     plt.savefig(os.path.join(PLOT_DIR, 'family_eval.pdf'), format='pdf')
     plt.close()
+    # plt.show()
 
 if __name__ == "__main__":
-    # ligand_plot()
+    ligand_plot()
     family_plot()
