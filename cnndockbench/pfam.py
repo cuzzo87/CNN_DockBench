@@ -50,38 +50,59 @@ if __name__ == "__main__":
     with open(os.path.join(RES_PATH, 'split_pdbids.pt'), 'rb') as handle:
         split_pdbids = pickle.load(handle)
 
-    results_family = {}
+    corr_family = {}
+    rmse_family = {}
 
     for mode in EVAL_MODES:
-        results_family.setdefault(mode, {})
+        corr_family.setdefault(mode, {})
+        rmse_family.setdefault(mode, {})
+
         for split_no in range(N_SPLITS):
             pdbids = split_pdbids[mode][split_no]
             families = [pdbid_pfam_map[pdbid] if pdbid in pdbid_pfam_map else None for pdbid in pdbids]
             mask = np.load(os.path.join(RES_PATH, 'mask_{}_{}.npy'.format(mode, split_no))).astype(np.bool)
             rmsd_ave_test = np.load(os.path.join(RES_PATH, 'rmsd_ave_test_{}_{}.npy'.format(mode, split_no)))
             rmsd_ave_pred = np.load(os.path.join(RES_PATH, 'rmsd_ave_pred_{}_{}.npy'.format(mode, split_no)))
-            corrs, _ = ligand_eval(rmsd_ave_test, rmsd_ave_pred, mask)
+            corrs, _, rmses = ligand_eval(rmsd_ave_test, rmsd_ave_pred, mask)
 
-            for family, corr in zip(families, corrs):
-                results_family[mode].setdefault(family, [])
-                results_family[mode][family].append(corr)
+            for family, corr, rmse in zip(families, corrs, rmses):
+                corr_family[mode].setdefault(family, [])
+                rmse_family[mode].setdefault(family, [])
+                corr_family[mode][family].append(corr)
+                rmse_family[mode][family].append(rmse)
 
     # Average results
-    avg_family = {}
-    std_family = {}
+    corr_avg_family = {}
+    corr_std_family = {}
+
+    rmse_avg_family = {}
+    rmse_std_family = {}
 
     for mode in EVAL_MODES:
-        avg_family.setdefault(mode, {})
-        std_family.setdefault(mode, {})
-        for family, res in results_family[mode].items():
-            avg_family[mode][family] = np.mean(res)
-            std_family[mode][family] = np.std(res) 
+        corr_avg_family.setdefault(mode, {})
+        corr_std_family.setdefault(mode, {})
 
-    with open(os.path.join(RES_PATH, 'avg_family.pt'), 'wb') as handle:
-        pickle.dump(avg_family, handle)
+        rmse_avg_family.setdefault(mode, {})
+        rmse_std_family.setdefault(mode, {})
 
-    with open(os.path.join(RES_PATH, 'std_family.pt'), 'wb') as handle:
-        pickle.dump(std_family, handle)
+        for (family, corr), (_, rmse) in zip(corr_family[mode].items(), rmse_family[mode].items()):
+            corr_avg_family[mode][family] = np.mean(corr)
+            corr_std_family[mode][family] = np.std(corr)
+
+            rmse_avg_family[mode][family] = np.mean(rmse)
+            rmse_std_family[mode][family] = np.std(rmse) 
+
+    with open(os.path.join(RES_PATH, 'corr_avg_family.pt'), 'wb') as handle:
+        pickle.dump(corr_avg_family, handle)
+
+    with open(os.path.join(RES_PATH, 'corr_std_family.pt'), 'wb') as handle:
+        pickle.dump(corr_std_family, handle)
+
+    with open(os.path.join(RES_PATH, 'rmse_avg_family.pt'), 'wb') as handle:
+        pickle.dump(rmse_avg_family, handle)
+
+    with open(os.path.join(RES_PATH, 'rmse_std_family.pt'), 'wb') as handle:
+        pickle.dump(rmse_std_family, handle)
 
     # Family population
     population_family = pfam_population(pdbid_pfam_map, split_pdbids)

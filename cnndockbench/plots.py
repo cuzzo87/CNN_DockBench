@@ -80,18 +80,12 @@ def ligand_plot():
     plt.close()
 
 
-def family_plot(num_families=30):
-    with open(os.path.join(RES_DIR, 'avg_family.pt'), 'rb') as handle:
-        avg_family = pickle.load(handle)
-    
-    with open(os.path.join(RES_DIR, 'std_family.pt'), 'rb') as handle:
-        std_family = pickle.load(handle)
-
+def family_plot(avg, std, outf, num_families=30, color='slategrey'):
     with open(os.path.join(RES_DIR, 'pfam_population.pt'), 'rb') as handle:
         population_family = pickle.load(handle)
 
     population_family.pop(None)
-    sorted_population = sorted(population_family.items(), key=lambda kv: kv[1], reverse=False)
+    sorted_population = sorted(population_family.items(), key=lambda kv: kv[1], reverse=True)
     selected_families = [t[0] for t in sorted_population[:num_families]]
 
     f, ax = plt.subplots(nrows=2, ncols=2, sharey=True, figsize=(12, 8))
@@ -100,11 +94,11 @@ def family_plot(num_families=30):
     for row in range(2):
         for col in range(2):
             mode = EVAL_MODES[idx]
-            avg_top = [avg_family[mode][fam] for fam in selected_families if fam in avg_family[mode]]
-            std_top = [std_family[mode][fam] for fam in selected_families if fam in std_family[mode]]
+            avg_top = [avg[mode][fam] for fam in selected_families if fam in avg[mode]]
+            std_top = [std[mode][fam] for fam in selected_families if fam in std[mode]]
             x = np.arange(len(avg_top))
 
-            ax[row, col].bar(x, avg_top, yerr=std_top, color='slategrey')
+            ax[row, col].bar(x, avg_top, yerr=std_top, color=color)
             ax[row, col].set_xticks(np.arange(len(x)))
             ax[row, col].set_xticklabels(selected_families, rotation=65)
             ax[row, col].set_title(NAMES_EVAL_MODES[mode])
@@ -113,10 +107,24 @@ def family_plot(num_families=30):
             idx += 1
 
     plt.tight_layout()
-    plt.savefig(os.path.join(PLOT_DIR, 'family_eval.pdf'), format='pdf')
+    plt.savefig(os.path.join(PLOT_DIR, outf), format='pdf')
     plt.close()
     # plt.show()
 
 if __name__ == "__main__":
     ligand_plot()
-    family_plot()
+
+    with open(os.path.join(RES_DIR, 'corr_avg_family.pt'), 'rb') as handle:
+        corr_avg_family = pickle.load(handle)
+    
+    with open(os.path.join(RES_DIR, 'corr_std_family.pt'), 'rb') as handle:
+        corr_std_family = pickle.load(handle)
+
+    with open(os.path.join(RES_DIR, 'rmse_avg_family.pt'), 'rb') as handle:
+        rmse_avg_family = pickle.load(handle)
+    
+    with open(os.path.join(RES_DIR, 'rmse_std_family.pt'), 'rb') as handle:
+        rmse_std_family = pickle.load(handle)
+
+    family_plot(corr_avg_family, corr_std_family, 'corr_family_eval.pdf')
+    family_plot(rmse_avg_family, rmse_std_family, 'rmse_family_eval.pdf', color='yellowgreen')
