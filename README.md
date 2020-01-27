@@ -9,7 +9,7 @@ conda env create -f conda_env.yml
 ```
 
 
-Download and uncompress:
+Download and uncompress auxiliary data:
 
 ```bash
 cd cnndockbench
