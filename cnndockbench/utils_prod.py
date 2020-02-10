@@ -6,8 +6,8 @@ from rdkit.Chem import MolFromSmiles
 from torch.utils.data import Dataset
 from tqdm import tqdm
 
-from net_utils import get_ligand_features, get_protein_features
-from train import DEVICE
+from cnndockbench.net_utils import get_ligand_features, get_protein_features
+from cnndockbench.train import DEVICE
 
 
 class FeaturizerProd(Dataset):

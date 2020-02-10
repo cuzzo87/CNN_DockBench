@@ -9,9 +9,9 @@ from torch.optim.lr_scheduler import ExponentialLR
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from net import TwoLegs
-from net_utils import CombinedLoss, Featurizer
-from utils import Splitter, get_data, home
+from cnndockbench.net import TwoLegs
+from cnndockbench.net_utils import CombinedLoss, Featurizer
+from cnndockbench.utils import Splitter, get_data, home
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 NUM_WORKERS = int(multiprocessing.cpu_count() / 2)

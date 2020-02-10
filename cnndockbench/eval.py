@@ -5,9 +5,9 @@ import numpy as np
 from scipy.stats import spearmanr, kendalltau
 from sklearn.metrics import cohen_kappa_score
 
-from preprocess import PROTOCOLS
-from train import EVAL_MODES, N_SPLITS
-from utils import home
+from cnndockbench.preprocess import PROTOCOLS
+from cnndockbench.train import EVAL_MODES, N_SPLITS
+from cnndockbench.utils import home
 
 
 RES_DIR = os.path.join(home(), 'results')

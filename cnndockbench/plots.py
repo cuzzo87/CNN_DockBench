@@ -7,13 +7,13 @@ import matplotlib
 # matplotlib.use('Agg')
 
 import matplotlib.pyplot as plt
-from train import EVAL_MODES, N_SPLITS
-from utils import home
+from cnndockbench.train import EVAL_MODES, N_SPLITS
+from cnndockbench.preprocess import PROTOCOLS
+from cnndockbench.utils import home
 
 from matplotlib import rc
 # rc('font',**{'family':'sans-serif', 'sans-serif':['Helvetica'], 'size': 6})
 rc('text', usetex=True)
-
 
 
 RES_DIR = os.path.join(home(), 'results')
@@ -110,6 +110,26 @@ def family_plot(avg, std, outf, num_families=30, color='slategrey'):
     plt.savefig(os.path.join(PLOT_DIR, outf), format='pdf')
     plt.close()
     # plt.show()
+
+
+def desc_plot():
+    rmses_min = []
+    rmses_ave = []
+    n_rmsds = []
+    masks = []
+
+    for split_no in range(N_SPLITS):
+        rmses_min.append(np.load(os.path.join(RES_DIR, 'rmsd_min_test_random_{}.npy'.format(split_no))))
+        rmses_ave.append(np.load(os.path.join(RES_DIR, 'rmsd_ave_test_random_{}.npy'.format(split_no))))
+        rmses_min.append(np.load(os.path.join(RES_DIR, 'n_rmsd_test_random_{}.npy'.format(split_no))))
+        masks.append(np.load(os.path.join(RES_DIR, 'mask_random_{}.npy'.format(split_no))))
+    
+    rmses_min = np.vstack(rmses_min)
+    rmses_ave = np.vstack(rmses_ave)
+    n_rmsds = np.vstack(n_rmsds)
+    masks = np.vstack(masks)
+
+
 
 if __name__ == "__main__":
     ligand_plot()

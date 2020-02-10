@@ -5,9 +5,9 @@ from glob import glob
 import numpy as np
 from tqdm import tqdm
 
-from train import EVAL_MODES, N_SPLITS
-from eval import ligand_eval
-from utils import home
+from cnndockbench.train import EVAL_MODES, N_SPLITS
+from cnndockbench.eval import ligand_eval
+from cnndockbench.utils import home
 
 CLASSES_PATH = os.path.join(home(), 'proteinClasses')
 RES_PATH = os.path.join(home(), 'results')

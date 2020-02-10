@@ -11,9 +11,9 @@ from moleculekit.molecule import Molecule
 from moleculekit.tools.atomtyper import prepareProteinForAtomtyping
 from moleculekit.tools.voxeldescriptors import getCenters, getChannels
 from preprocess import BOXSIZE, PROTOCOLS
-from train import BATCH_SIZE, DEVICE, NUM_WORKERS
-from utils import home
-from utils_prod import FeaturizerProd, prod_loop
+from cnndockbench.train import BATCH_SIZE, DEVICE, NUM_WORKERS
+from cnndockbench.utils import home
+from cnndockbench.utils_prod import FeaturizerProd, prod_loop
 
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s || %(name)s | %(levelname)s: %(message)s',  datefmt='%Y/%m/%d %I:%M:%S %p')
