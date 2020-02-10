@@ -1,18 +1,21 @@
 # cnndockbench
 
-### Conda environment
+Accompanying code for the manuscript _A deep-learning-based method for informed molecular docking protocol selection_, as available in [arXiv](https://arXiv).
 
-Execute to replicate package environment
+### How-to
+
+First clone the repository and replicate our package environment:
 
 ```bash
 conda env create -f conda_env.yml
+conda activate cnndockbench
 ```
 
 
-Download and uncompress:
+Download and uncompress auxiliary data:
 
 ```bash
-cd CNN_DockBench/cnndockbench
+cd cnndockbench
 wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1bUz4ZIzwNZgU67gsgOYlb4v1l2CrN5zk' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1bUz4ZIzwNZgU67gsgOYlb4v1l2CrN5zk" -O data.tar.gz && rm -rf /tmp/cookies.txt
 tar -xf data.tar.gz
 ```
@@ -44,3 +47,9 @@ The entire code for replicating the results reported in the paper is found in th
 
 
 Code for training a new production model is also available in the `train_prod.py` script.
+
+```bash
+python train_prod.py
+```
+
+This will train a new model from scratch - using GPUs if available - and will place it under the `models` subdirectory.
