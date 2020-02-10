@@ -11,8 +11,8 @@ from moleculekit.molecule import Molecule
 from moleculekit.util import uniformRandomRotation
 from moleculekit.tools.voxeldescriptors import getVoxelDescriptors
 
-from preprocess import FAIL_FLAG, BOXSIZE
-from utils import FP_SIZE
+from cnndockbench.preprocess import FAIL_FLAG, BOXSIZE
+from cnndockbench.utils import FP_SIZE
 
 
 class Featurizer(Dataset):
