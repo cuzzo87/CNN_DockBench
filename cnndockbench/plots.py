@@ -1,20 +1,22 @@
 import os
 import pickle
 
-import numpy as np
 import matplotlib
-
-# matplotlib.use('Agg')
-
 import matplotlib.pyplot as plt
-from cnndockbench.train import EVAL_MODES, N_SPLITS
+import numpy as np
+import pandas as pd
+import seaborn as sns
+from matplotlib import rc
+
 from cnndockbench.preprocess import PROTOCOLS
+from cnndockbench.train import EVAL_MODES, N_SPLITS
 from cnndockbench.utils import home
 
-from matplotlib import rc
-# rc('font',**{'family':'sans-serif', 'sans-serif':['Helvetica'], 'size': 6})
-rc('text', usetex=True)
+matplotlib.use('Agg')
 
+
+rc('font',**{'family':'sans-serif', 'sans-serif':['Helvetica'], 'size': 12})
+rc('text', usetex=True)
 
 RES_DIR = os.path.join(home(), 'results')
 PLOT_DIR = os.path.join(home(), 'plots')
@@ -25,6 +27,7 @@ NAMES_EVAL_MODES = {
     'protein_classes': 'protein classes',
     'protein_classes_distribution': 'protein classes balanced'
 }
+
 
 def ligand_res(rmsd_test, rmsd_pred, mask):
     r_ts = []
@@ -46,15 +49,20 @@ def ligand_plot():
         ligand_pred.setdefault(mode, [])
 
         for split_no in range(N_SPLITS):
-            mask = np.load(os.path.join(RES_DIR, 'mask_{}_{}.npy'.format(mode, split_no))).astype(np.bool)
-            rmsd_ave_test = np.load(os.path.join(RES_DIR, 'rmsd_ave_test_{}_{}.npy'.format(mode, split_no)))
-            rmsd_ave_pred = np.load(os.path.join(RES_DIR, 'rmsd_ave_pred_{}_{}.npy'.format(mode, split_no)))
+            mask = np.load(
+                os.path.join(RES_DIR, 'mask_{}_{}.npy'.format(
+                    mode, split_no))).astype(np.bool)
+            rmsd_ave_test = np.load(
+                os.path.join(RES_DIR,
+                             'rmsd_ave_test_{}_{}.npy'.format(mode, split_no)))
+            rmsd_ave_pred = np.load(
+                os.path.join(RES_DIR,
+                             'rmsd_ave_pred_{}_{}.npy'.format(mode, split_no)))
             r_ts, r_ps = ligand_res(rmsd_ave_test, rmsd_ave_pred, mask)
             ligand_true[mode].extend(r_ts)
             ligand_pred[mode].extend(r_ps)
 
-    f, ax = plt.subplots(nrows=2, ncols=2, dpi=400, sharex=True,
-                         sharey=True)
+    f, ax = plt.subplots(nrows=2, ncols=2, dpi=400, sharex=True, sharey=True)
     idx = 0
 
     for row in range(2):
@@ -73,8 +81,15 @@ def ligand_plot():
             ax[row, col].set_aspect(abs(x1 - x0) / abs(y1 - y0))
             idx += 1
 
-    f.text(0.5, 0.04, r'Experimental $\mathrm{RMSD}_{\mathrm{ave}}$', ha='center')
-    f.text(0.04, 0.45, r'Predicted $\mathrm{RMSD}_{\mathrm{ave}}$', ha='center', rotation='vertical')
+    f.text(0.5,
+           0.04,
+           r'Experimental $\mathrm{RMSD}_{\mathrm{ave}}$',
+           ha='center')
+    f.text(0.04,
+           0.45,
+           r'Predicted $\mathrm{RMSD}_{\mathrm{ave}}$',
+           ha='center',
+           rotation='vertical')
 
     plt.savefig(os.path.join(PLOT_DIR, 'ligand_eval.png'), format='png')
     plt.close()
@@ -85,7 +100,9 @@ def family_plot(avg, std, outf, num_families=30, color='slategrey'):
         population_family = pickle.load(handle)
 
     population_family.pop(None)
-    sorted_population = sorted(population_family.items(), key=lambda kv: kv[1], reverse=True)
+    sorted_population = sorted(population_family.items(),
+                               key=lambda kv: kv[1],
+                               reverse=True)
     selected_families = [t[0] for t in sorted_population[:num_families]]
 
     f, ax = plt.subplots(nrows=2, ncols=2, sharey=True, figsize=(12, 8))
@@ -94,8 +111,12 @@ def family_plot(avg, std, outf, num_families=30, color='slategrey'):
     for row in range(2):
         for col in range(2):
             mode = EVAL_MODES[idx]
-            avg_top = [avg[mode][fam] for fam in selected_families if fam in avg[mode]]
-            std_top = [std[mode][fam] for fam in selected_families if fam in std[mode]]
+            avg_top = [
+                avg[mode][fam] for fam in selected_families if fam in avg[mode]
+            ]
+            std_top = [
+                std[mode][fam] for fam in selected_families if fam in std[mode]
+            ]
             x = np.arange(len(avg_top))
 
             ax[row, col].bar(x, avg_top, yerr=std_top, color=color)
@@ -113,38 +134,90 @@ def family_plot(avg, std, outf, num_families=30, color='slategrey'):
 
 
 def desc_plot():
-    rmses_min = []
-    rmses_ave = []
+    rmsds_min = []
+    rmsds_ave = []
     n_rmsds = []
     masks = []
 
     for split_no in range(N_SPLITS):
-        rmses_min.append(np.load(os.path.join(RES_DIR, 'rmsd_min_test_random_{}.npy'.format(split_no))))
-        rmses_ave.append(np.load(os.path.join(RES_DIR, 'rmsd_ave_test_random_{}.npy'.format(split_no))))
-        rmses_min.append(np.load(os.path.join(RES_DIR, 'n_rmsd_test_random_{}.npy'.format(split_no))))
-        masks.append(np.load(os.path.join(RES_DIR, 'mask_random_{}.npy'.format(split_no))))
-    
-    rmses_min = np.vstack(rmses_min)
-    rmses_ave = np.vstack(rmses_ave)
+        rmsds_min.append(
+            np.load(
+                os.path.join(RES_DIR,
+                             'rmsd_min_test_random_{}.npy'.format(split_no))))
+        rmsds_ave.append(
+            np.load(
+                os.path.join(RES_DIR,
+                             'rmsd_ave_test_random_{}.npy'.format(split_no))))
+        n_rmsds.append(
+            np.load(
+                os.path.join(RES_DIR,
+                             'n_rmsd_test_random_{}.npy'.format(split_no))))
+        masks.append(
+            np.load(
+                os.path.join(RES_DIR, 'mask_random_{}.npy'.format(split_no))))
+
+    rmsds_min = np.vstack(rmsds_min)
+    rmsds_ave = np.vstack(rmsds_ave)
     n_rmsds = np.vstack(n_rmsds)
     masks = np.vstack(masks)
 
+    protocols = []
+    rmsd_min_long = []
+    rmsd_ave_long = []
+    n_rmsd_long = []
+
+    for idx_protocol, protocol in enumerate(PROTOCOLS):
+        rmsd_min_protocol = rmsds_min[masks[:, idx_protocol].astype(np.bool), idx_protocol].tolist()
+        rmsd_ave_protocol = rmsds_ave[masks[:, idx_protocol].astype(np.bool), idx_protocol].tolist()
+        n_rmsd_protocol = n_rmsds[masks[:, idx_protocol].astype(np.bool), idx_protocol].tolist()
+        rmsd_min_long.extend(rmsd_min_protocol)
+        rmsd_ave_long.extend(rmsd_ave_protocol)
+        n_rmsd_long.extend(n_rmsd_protocol)
+        protocols.extend([protocol] * len(rmsd_min_protocol))
+
+    df_desc = pd.DataFrame({
+        'protocol': protocols,
+        'rmsd_min': rmsd_min_long,
+        'rmsd_ave': rmsd_ave_long,
+        'n_rmsd': n_rmsd_long
+    })
+
+    common_params = {'linewidth': 1,
+                     'fliersize': 1,
+                     'palette': 'tab20',
+                     'showfliers': False}
+
+    f, ax = plt.subplots(1, 3, figsize=(12, 6))
+    ax0 = sns.boxplot(y='protocol', x='rmsd_min', data=df_desc, orient='h', ax=ax[0], **common_params)
+    ax0.set(ylabel='', xlabel=r'$\mathrm{RMSD}_\mathrm{min}$')
+    ax1 = sns.boxplot(y='protocol', x='rmsd_ave', data=df_desc, orient='h', ax=ax[1], **common_params)
+    ax1.set(ylabel='', yticklabels=[], xlabel=r'$\mathrm{RMSD}_\mathrm{ave}$')
+    ax2 = sns.boxplot(y='protocol', x='n_rmsd', data=df_desc, orient='h', ax=ax[2], **common_params)
+    ax2.set(ylabel='', yticklabels=[], xlabel=r'$n\mathrm{RMSD}$')
+    plt.tight_layout()
+    plt.savefig(os.path.join(PLOT_DIR, 'rmsd_plot.pdf'))
+    plt.close()
 
 
 if __name__ == "__main__":
-    ligand_plot()
+    # ligand_plot()
 
-    with open(os.path.join(RES_DIR, 'corr_avg_family.pt'), 'rb') as handle:
-        corr_avg_family = pickle.load(handle)
-    
-    with open(os.path.join(RES_DIR, 'corr_std_family.pt'), 'rb') as handle:
-        corr_std_family = pickle.load(handle)
+    # with open(os.path.join(RES_DIR, 'corr_avg_family.pt'), 'rb') as handle:
+    #     corr_avg_family = pickle.load(handle)
 
-    with open(os.path.join(RES_DIR, 'rmse_avg_family.pt'), 'rb') as handle:
-        rmse_avg_family = pickle.load(handle)
-    
-    with open(os.path.join(RES_DIR, 'rmse_std_family.pt'), 'rb') as handle:
-        rmse_std_family = pickle.load(handle)
+    # with open(os.path.join(RES_DIR, 'corr_std_family.pt'), 'rb') as handle:
+    #     corr_std_family = pickle.load(handle)
 
-    family_plot(corr_avg_family, corr_std_family, 'corr_family_eval.pdf')
-    family_plot(rmse_avg_family, rmse_std_family, 'rmse_family_eval.pdf', color='yellowgreen')
+    # with open(os.path.join(RES_DIR, 'rmse_avg_family.pt'), 'rb') as handle:
+    #     rmse_avg_family = pickle.load(handle)
+
+    # with open(os.path.join(RES_DIR, 'rmse_std_family.pt'), 'rb') as handle:
+    #     rmse_std_family = pickle.load(handle)
+
+    # family_plot(corr_avg_family, corr_std_family, 'corr_family_eval.pdf')
+    # family_plot(rmse_avg_family,
+    #             rmse_std_family,
+    #             'rmse_family_eval.pdf',
+    #             color='yellowgreen')
+
+    desc_plot()
