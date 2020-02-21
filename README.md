@@ -2,7 +2,7 @@
 
 Accompanying code for the manuscript _A deep-learning-based method for informed molecular docking protocol selection_, as available in [arXiv](https://arXiv).
 
-### How-to
+## How-to
 
 First clone the repository and replicate our package environment:
 
@@ -10,7 +10,6 @@ First clone the repository and replicate our package environment:
 conda env create -f conda_env.yml
 conda activate cnndockbench
 ```
-
 
 Download and uncompress auxiliary data:
 
@@ -20,31 +19,35 @@ wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download
 tar -xf data.tar.gz
 ```
 
-### Run model
+Append the repository to your `PYTHONPATH` environment variable:
+
+```bash
+export PYTHONPATH=pathtofolder/CNN_DockBench:$PYTHONPATH
+```
+
+## Run model
 
 The model implementation provided here requires:
 
 - A (possibly unprotonated) protein `.pdb` file.
-- Ligand SMILES with an `.smi` file.
+- Ligand SMILES with an `.smi` file. (or several on the same file)
 - Binding pocket center coordinates (__x, y, z__).
 
 One can simply run the pretrained model using the `prod.py` script:
 
 ```bash
-python prod.py -pdb protein.pdb -smi ligands.smi -x 1.61 -y -47.56 -z 6.82 -output PATH
+python prod.py -pdb example/3ptb_protein.pdb -smi example/nicotine.smi -x -1.759 -y 14.461 -z 16.916 -output example/
 ```
 
 The script will generate three files: `rmsd_min.csv`, `rmsd_ave.csv` and `n_rmsd.csv` in the `-output` folder or in the current directory if unspecified.
 
+## Replication of the results
 
-### Replication of the results
-
-The entire code for replicating the results reported in the paper is found in this repository. You can also precompute some data for faster replication of the results. 
+The entire code for replicating the results reported in the paper is found in this repository. You can also precompute some data for faster replication of the results.
 
 - Step 1 (optional): Run `python precompute.py` and `python net_utils.py`, if you have not downloaded and uncompressed `data.tar.gz` as per instructed.
 - Step 2: Run `train.py`. Results will be stored in the `results` folder for each split type.
 - Step 3: Profit!
-
 
 Code for training a new production model is also available in the `train_prod.py` script.
 
