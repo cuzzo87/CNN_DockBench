@@ -1,6 +1,6 @@
 # cnndockbench
 
-Accompanying code for the manuscript _A deep-learning-based method for informed molecular docking protocol selection_, as available in [arXiv](https://arXiv).
+Accompanying code for the manuscript _A Deep-learning Approach Toward Rational Molecular Docking Protocol Selection_, as available in [ChemrXiv](https://arXiv).
 
 ## How-to
 
