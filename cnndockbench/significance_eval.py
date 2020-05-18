@@ -8,16 +8,8 @@ import pandas as pd
 from cnndockbench.preprocess import PROTOCOLS, FAIL_FLAG
 from cnndockbench.train import EVAL_MODES, N_SPLITS
 from cnndockbench.utils import home
+from cnndockbench.plots import NAMES_EVAL_MODES, RES_DIR
 
-
-NAMES_EVAL_MODES = {
-    "random": "random",
-    "ligand_scaffold": "ligand scaffold",
-    "protein_classes": "protein classes",
-    "protein_classes_distribution": "protein classes balanced",
-}
-
-RES_DIR = os.path.join(home(), "results")
 
 
 def get_long_data():
