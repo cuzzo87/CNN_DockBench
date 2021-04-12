@@ -4,7 +4,7 @@ import logging, warnings
 import numpy as np
 import pandas as pd
 import torch
-from rdkit.Chem import MolToSmiles, MolFromSmiles
+from rdkit.Chem import MolFromSmiles
 from torch.utils.data import DataLoader
 
 from moleculekit.molecule import Molecule
