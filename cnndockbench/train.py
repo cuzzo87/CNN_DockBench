@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from cnndockbench.net import TwoLegs
-from cnndockbench.net_utils import CombinedLoss, Featurizer
+from cnndockbench.net_utils import CombinedLoss, Featurizer, worker_init_fn
 from cnndockbench.utils import Splitter, get_data, home
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -111,12 +111,14 @@ if __name__ == '__main__':
             loader_train = DataLoader(feat_train,
                                       batch_size=BATCH_SIZE,
                                       num_workers=NUM_WORKERS,
-                                      shuffle=True)
+                                      shuffle=True,
+                                      worker_init_fn=worker_init_fn)
 
             loader_test = DataLoader(feat_test,
                                      batch_size=BATCH_SIZE,
                                      num_workers=NUM_WORKERS,
-                                     shuffle=False)
+                                     shuffle=False,
+                                     worker_init_fn=worker_init_fn)
 
             model = TwoLegs().to(DEVICE)
             loss_cl = CombinedLoss()
@@ -128,6 +130,8 @@ if __name__ == '__main__':
                 print('Epoch {}/{}...'.format(i + 1, N_EPOCHS))
                 training_loop(loader_train, model, loss_cl, opt)
                 scheduler.step()
+
+                np.random.seed(1337 + i)
 
             print('Evaluating model...')
             rmsd_min_test, rmsd_ave_test, n_rmsd_test, rmsd_min_pred, rmsd_ave_pred, n_rmsd_pred, mask = eval_loop(loader_test, model)

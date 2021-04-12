@@ -3,11 +3,10 @@ from glob import glob
 import numpy as np
 import torch
 from torch import nn
-from rdkit import Chem, DataStructs
-from rdkit.Chem import AllChem, SDMolSupplier, MolFromSmiles, Descriptors
+from rdkit import DataStructs
+from rdkit.Chem import AllChem, SDMolSupplier, Descriptors
 from torch.utils.data import Dataset
 
-from moleculekit.molecule import Molecule
 from moleculekit.util import uniformRandomRotation
 from moleculekit.tools.voxeldescriptors import getVoxelDescriptors
 
@@ -117,6 +116,8 @@ def get_rdkit_descriptors(mol):
     return np.array(list(ans.values()), dtype=np.float32)
 
 
+def worker_init_fn(worker_id):                                                          
+    np.random.seed(np.random.get_state()[1][0] + worker_id)
 
 if __name__ == '__main__':
     # Compute overall average and std of ligand features

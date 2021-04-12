@@ -1,5 +1,4 @@
 import os
-import pickle
 
 import numpy as np
 from scipy.stats import mannwhitneyu, ttest_ind
