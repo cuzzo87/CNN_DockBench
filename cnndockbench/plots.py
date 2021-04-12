@@ -8,7 +8,7 @@ import pandas as pd
 import seaborn as sns
 from matplotlib import rc
 
-from cnndockbench.preprocess import PROTOCOLS, FAIL_FLAG
+from cnndockbench.preprocess import FAIL_FLAG, PROTOCOLS
 from cnndockbench.train import EVAL_MODES, N_SPLITS
 from cnndockbench.utils import home
 
@@ -378,23 +378,22 @@ def rmsd_plot():
 if __name__ == "__main__":
     ligand_plot()
 
-    with open(os.path.join(RES_DIR, 'corr_avg_family.pt'), 'rb') as handle:
+    with open(os.path.join(RES_DIR, "corr_avg_family.pt"), "rb") as handle:
         corr_avg_family = pickle.load(handle)
 
-    with open(os.path.join(RES_DIR, 'corr_std_family.pt'), 'rb') as handle:
+    with open(os.path.join(RES_DIR, "corr_std_family.pt"), "rb") as handle:
         corr_std_family = pickle.load(handle)
 
-    with open(os.path.join(RES_DIR, 'rmse_avg_family.pt'), 'rb') as handle:
+    with open(os.path.join(RES_DIR, "rmse_avg_family.pt"), "rb") as handle:
         rmse_avg_family = pickle.load(handle)
 
-    with open(os.path.join(RES_DIR, 'rmse_std_family.pt'), 'rb') as handle:
+    with open(os.path.join(RES_DIR, "rmse_std_family.pt"), "rb") as handle:
         rmse_std_family = pickle.load(handle)
 
-    family_plot(corr_avg_family, corr_std_family, 'corr_family_eval.pdf')
-    family_plot(rmse_avg_family,
-                rmse_std_family,
-                'rmse_family_eval.pdf',
-                color='yellowgreen')
+    family_plot(corr_avg_family, corr_std_family, "corr_family_eval.pdf")
+    family_plot(
+        rmse_avg_family, rmse_std_family, "rmse_family_eval.pdf", color="yellowgreen"
+    )
 
     desc_plot()
 

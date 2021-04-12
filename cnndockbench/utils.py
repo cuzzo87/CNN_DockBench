@@ -2,17 +2,23 @@ import os
 from glob import glob
 
 import numpy as np
-
 from rdkit import DataStructs
 from rdkit.Chem import AllChem, SDMolSupplier
-
-from sklearn.model_selection import KFold
 from sklearn.cluster import MiniBatchKMeans
-
+from sklearn.model_selection import KFold
 
 FP_SIZE = 1024
-REQUIRED_FILES = ['coords.npy', 'grid_centers.npy', 'channels.npy', 'ligand.sdf',
-                  'center.npy', 'rmsd_min.npy', 'rmsd_ave.npy', 'n_rmsd.npy', 'resolution.npy']
+REQUIRED_FILES = [
+    "coords.npy",
+    "grid_centers.npy",
+    "channels.npy",
+    "ligand.sdf",
+    "center.npy",
+    "rmsd_min.npy",
+    "rmsd_ave.npy",
+    "n_rmsd.npy",
+    "resolution.npy",
+]
 
 
 def home():
@@ -32,7 +38,7 @@ def check_required_files(path, required_files):
     before retrieving them.
     """
     all_available = True
-    available_files = set([os.path.basename(f) for f in glob(os.path.join(path, '*'))])
+    available_files = set([os.path.basename(f) for f in glob(os.path.join(path, "*"))])
     for req_file in required_files:
         if req_file not in available_files:
             all_available = False
@@ -54,24 +60,34 @@ def get_data(path):
     n_rmsd = []
     resolution = []
 
-    for subfolder in sorted(glob(os.path.join(path, '*/'))):
+    for subfolder in sorted(glob(os.path.join(path, "*/"))):
         if check_required_files(subfolder, REQUIRED_FILES):
-            coords.append(os.path.join(subfolder, 'coords.npy'))
-            grid_centers.append(os.path.join(subfolder, 'grid_centers.npy'))
-            channels.append(os.path.join(subfolder, 'channels.npy'))
-            ligands.append(os.path.join(subfolder, 'ligand.sdf'))
-            centers.append(os.path.join(subfolder, 'center.npy'))
-            rmsd_min.append(os.path.join(subfolder, 'rmsd_min.npy'))
-            rmsd_ave.append(os.path.join(subfolder, 'rmsd_ave.npy'))
-            n_rmsd.append(os.path.join(subfolder, 'n_rmsd.npy'))
-            resolution.append(os.path.join(subfolder, 'resolution.npy'))
-    return coords, grid_centers, channels, centers, ligands, rmsd_min, rmsd_ave, n_rmsd, resolution
+            coords.append(os.path.join(subfolder, "coords.npy"))
+            grid_centers.append(os.path.join(subfolder, "grid_centers.npy"))
+            channels.append(os.path.join(subfolder, "channels.npy"))
+            ligands.append(os.path.join(subfolder, "ligand.sdf"))
+            centers.append(os.path.join(subfolder, "center.npy"))
+            rmsd_min.append(os.path.join(subfolder, "rmsd_min.npy"))
+            rmsd_ave.append(os.path.join(subfolder, "rmsd_ave.npy"))
+            n_rmsd.append(os.path.join(subfolder, "n_rmsd.npy"))
+            resolution.append(os.path.join(subfolder, "resolution.npy"))
+    return (
+        coords,
+        grid_centers,
+        channels,
+        centers,
+        ligands,
+        rmsd_min,
+        rmsd_ave,
+        n_rmsd,
+        resolution,
+    )
 
 
 def getClassPDBids(classesList):
     dict_idx_pdbids = {}
     for n in range(len(classesList)):
-        f = open(classesList[n], 'r')
+        f = open(classesList[n], "r")
         lines = [entry.strip() for entry in f.readlines()]
         f.close()
         dict_idx_pdbids[n] = lines
@@ -79,8 +95,21 @@ def getClassPDBids(classesList):
 
 
 class Splitter:
-    def __init__(self, coords, grid_centers, channels, centers, ligands, rmsd_min, rmsd_ave, n_rmsd, resolution,
-                 n_splits=5, method='random', random_state=1337):
+    def __init__(
+        self,
+        coords,
+        grid_centers,
+        channels,
+        centers,
+        ligands,
+        rmsd_min,
+        rmsd_ave,
+        n_rmsd,
+        resolution,
+        n_splits=5,
+        method="random",
+        random_state=1337,
+    ):
         """
         Base class for splitting data into train and test sets.
         """
@@ -97,26 +126,37 @@ class Splitter:
         self.random_state = random_state
         self.n_samples = len(self.grid_centers)
 
-        self.classesList = glob(os.path.join(home(), 'proteinClasses', '*.list'))
+        self.classesList = glob(os.path.join(home(), "proteinClasses", "*.list"))
         self.dictIdxPdbids = getClassPDBids(self.classesList)
 
-        assert len(self.coords) == len(self.channels) == len(self.ligands) == len(self.centers) == \
-            len(self.rmsd_min) == len(self.rmsd_ave) == len(self.resolution)
+        assert (
+            len(self.coords)
+            == len(self.channels)
+            == len(self.ligands)
+            == len(self.centers)
+            == len(self.rmsd_min)
+            == len(self.rmsd_ave)
+            == len(self.resolution)
+        )
 
-        if method == 'random':
+        if method == "random":
             self._random_split()
 
-        elif method == 'ligand_scaffold':
+        elif method == "ligand_scaffold":
             self._ligand_scaffold_split()
 
-        elif method == 'protein_classes':
+        elif method == "protein_classes":
             self._protein_classes_split()
 
-        elif method == 'protein_classes_distribution':
+        elif method == "protein_classes_distribution":
             self._protein_classes_distribution()
 
         else:
-            raise ValueError('Splitting procedure not recognised. Available ones: {}'.format(self._available_methods()))
+            raise ValueError(
+                "Splitting procedure not recognised. Available ones: {}".format(
+                    self._available_methods()
+                )
+            )
 
     def _random_split(self):
         """
@@ -134,7 +174,7 @@ class Splitter:
         kf = KFold(n_splits=self.n_splits, shuffle=True, random_state=self.random_state)
 
         splits = []
-        references = [os.path.dirname(l).split('/')[-1].upper() for l in self.ligands]
+        references = [os.path.dirname(l).split("/")[-1].upper() for l in self.ligands]
 
         for s in range(self.n_splits):
             trains = [self.dictIdxPdbids[i] for i in list(kf.split(all_indices))[s][0]]
@@ -159,7 +199,7 @@ class Splitter:
         Balanced 1/5 ratio test/train PFAM classification split.
         """
         splits = []
-        references = [os.path.dirname(l).split('/')[-1].upper() for l in self.ligands]
+        references = [os.path.dirname(l).split("/")[-1].upper() for l in self.ligands]
         seeds = np.arange(self.random_state, self.random_state + 5)
 
         for s in range(self.n_splits):
@@ -183,7 +223,6 @@ class Splitter:
                     if t in references:
                         testsWell.append(references.index(t))
             splits.append([np.unique(trainsWell), np.unique(testsWell)])
-
 
         self.splits = splits
 
@@ -213,13 +252,35 @@ class Splitter:
         """
         Gets `split_no` train/test split .
         """
-        train_idx, test_idx = self.splits[split_no] 
-        return (self.coords[train_idx], self.grid_centers[train_idx], self.channels[train_idx],
-                self.centers[train_idx], self.ligands[train_idx], self.rmsd_min[train_idx],
-                self.rmsd_ave[train_idx], self.n_rmsd[train_idx]), (self.coords[test_idx],
-                self.grid_centers[test_idx], self.channels[test_idx], self.centers[test_idx],
-                self.ligands[test_idx], self.rmsd_min[test_idx], self.rmsd_ave[test_idx],
-                self.n_rmsd[test_idx])
+        train_idx, test_idx = self.splits[split_no]
+        return (
+            (
+                self.coords[train_idx],
+                self.grid_centers[train_idx],
+                self.channels[train_idx],
+                self.centers[train_idx],
+                self.ligands[train_idx],
+                self.rmsd_min[train_idx],
+                self.rmsd_ave[train_idx],
+                self.n_rmsd[train_idx],
+            ),
+            (
+                self.coords[test_idx],
+                self.grid_centers[test_idx],
+                self.channels[test_idx],
+                self.centers[test_idx],
+                self.ligands[test_idx],
+                self.rmsd_min[test_idx],
+                self.rmsd_ave[test_idx],
+                self.n_rmsd[test_idx],
+            ),
+        )
 
     def _available_methods(self):
-        return ['random', 'ligand_scaffold', 'protein_classes', 'protein_classes_distribution']
+        return [
+            "random",
+            "ligand_scaffold",
+            "protein_classes",
+            "protein_classes_distribution",
+        ]
+

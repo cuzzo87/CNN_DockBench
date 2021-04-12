@@ -22,6 +22,8 @@ RES_PATH = os.path.join(home(), 'results')
 N_EPOCHS = 200
 N_SPLITS = 5
 BATCH_SIZE = 32
+GAMMA_DECAY = .95
+SEED = 1337
 EVAL_MODES = ['random', 'ligand_scaffold', 'protein_classes', 'protein_classes_distribution']
 
 
@@ -106,7 +108,7 @@ if __name__ == '__main__':
             split_pdbids[mode].append(pdbids)
 
             feat_train = Featurizer(*train_data)
-            feat_test = Featurizer(*test_data)
+            feat_test = Featurizer(*test_data, rotate=False)
 
             loader_train = DataLoader(feat_train,
                                       batch_size=BATCH_SIZE,
@@ -117,21 +119,20 @@ if __name__ == '__main__':
             loader_test = DataLoader(feat_test,
                                      batch_size=BATCH_SIZE,
                                      num_workers=NUM_WORKERS,
-                                     shuffle=False,
-                                     worker_init_fn=worker_init_fn)
+                                     shuffle=False)
 
             model = TwoLegs().to(DEVICE)
             loss_cl = CombinedLoss()
             opt = Adam(model.parameters())
-            scheduler = ExponentialLR(opt, gamma=0.95)
+            scheduler = ExponentialLR(opt, gamma=GAMMA_DECAY)
 
             print('Training model...')
-            for i in range(N_EPOCHS):
-                print('Epoch {}/{}...'.format(i + 1, N_EPOCHS))
+            for epoch_no in range(N_EPOCHS):
+                print('Epoch {}/{}...'.format(epoch_no + 1, N_EPOCHS))
                 training_loop(loader_train, model, loss_cl, opt)
                 scheduler.step()
 
-                np.random.seed(1337 + i)
+                np.random.seed(SEED + epoch_no)
 
             print('Evaluating model...')
             rmsd_min_test, rmsd_ave_test, n_rmsd_test, rmsd_min_pred, rmsd_ave_pred, n_rmsd_pred, mask = eval_loop(loader_test, model)

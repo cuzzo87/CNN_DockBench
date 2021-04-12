@@ -16,22 +16,29 @@ class FeaturizerProd(Dataset):
     target values. It also only considers a single protein pocket
     and reuses its featurization.
     """
+
     def __init__(self, coords, grid_centers, channels, mols):
         self.coords = coords
         self.grid_centers = grid_centers
         self.channels = channels
         self.mols = mols
 
-        
-        self.desc_cols = np.load(os.path.join(os.path.dirname(__file__), 'data', 'desc_cols.npy'))
-        self.avg_feat = np.load(os.path.join(os.path.dirname(__file__), 'data', 'avg.npy'))
-        self.std_feat = np.load(os.path.join(os.path.dirname(__file__), 'data', 'std.npy'))
+        self.desc_cols = np.load(
+            os.path.join(os.path.dirname(__file__), "data", "desc_cols.npy")
+        )
+        self.avg_feat = np.load(
+            os.path.join(os.path.dirname(__file__), "data", "avg.npy")
+        )
+        self.std_feat = np.load(
+            os.path.join(os.path.dirname(__file__), "data", "std.npy")
+        )
 
-        self.prot_feat, _ = get_protein_features(usercoords=coords,
-                                                 usercenters=grid_centers,
-                                                 userchannels=channels)
-        self.prot_feat = np.transpose(self.prot_feat.reshape((24, 24, 24, 8)),
-                                      axes=(3, 0, 1, 2)).astype(np.float32)
+        self.prot_feat, _ = get_protein_features(
+            usercoords=coords, usercenters=grid_centers, userchannels=channels
+        )
+        self.prot_feat = np.transpose(
+            self.prot_feat.reshape((24, 24, 24, 8)), axes=(3, 0, 1, 2)
+        ).astype(np.float32)
 
     def __getitem__(self, index):
         # TODO: augmentation

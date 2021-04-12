@@ -1,14 +1,12 @@
 import os
 
 import numpy as np
-from scipy.stats import mannwhitneyu, ttest_ind
 import pandas as pd
+from scipy.stats import mannwhitneyu
 
-from cnndockbench.preprocess import PROTOCOLS, FAIL_FLAG
-from cnndockbench.train import EVAL_MODES, N_SPLITS
-from cnndockbench.utils import home
 from cnndockbench.plots import NAMES_EVAL_MODES, RES_DIR
-
+from cnndockbench.preprocess import FAIL_FLAG, PROTOCOLS
+from cnndockbench.train import EVAL_MODES, N_SPLITS
 
 
 def get_long_data():

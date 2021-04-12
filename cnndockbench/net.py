@@ -4,6 +4,7 @@ import torch.nn.functional as F
 
 from cnndockbench.preprocess import N_PROTOCOLS
 
+
 class TwoLegs(nn.Module):
     def __init__(self, desc_size=1207, channels=8):
         super(TwoLegs, self).__init__()
