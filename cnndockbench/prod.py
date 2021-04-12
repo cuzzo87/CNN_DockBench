@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader
 from moleculekit.molecule import Molecule
 from moleculekit.tools.atomtyper import prepareProteinForAtomtyping
 from moleculekit.tools.voxeldescriptors import getCenters, getChannels
-from preprocess import BOXSIZE, PROTOCOLS
+from cnndockbench.preprocess import BOXSIZE, PROTOCOLS
 from cnndockbench.train import BATCH_SIZE, DEVICE, NUM_WORKERS
 from cnndockbench.utils import home
 from cnndockbench.utils_prod import FeaturizerProd, prod_loop
